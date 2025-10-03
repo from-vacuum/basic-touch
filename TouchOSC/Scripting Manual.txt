@@ -1,0 +1,3504 @@
+
+
+        
+              
+
+              
+             
+
+              
+                TouchOSC Manual
+              
+
+              Scripting API
+
+              
+
+              
+                TouchOSC's scripting API is based on the Lua 5.1 language and
+  virtual machine with custom additions and modifications.
+Scripts can be added to all controls in a document and at the document root level. Each control's script will be
+  executed in its own Lua context.
+
+  
+• Lua Functions  
+• Global Functions
+    
+      
+• Utility      
+• Message      
+• JSON    
+    
+• Objects
+    
+      
+• Control      
+• Messages      
+• Rectangle      
+• Color      
+• Vectors    
+    
+• Enumerations  
+• Constants  
+• Properties & Values  
+• Examples
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Lua Functions
+
+              
+
+              
+                The following Lua standard library functions are available.
+
+base  
+
+Only the following Lua base library functions are available:
+
+error
+ipairs
+next
+pairs
+print
+select
+tonumber
+tostring
+unpack
+type
+
+string 
+
+All standard Lua string library functions are available.
+
+table 
+
+All standard Lua table library functions are available plus the following additions:
+
+    table.pack(...)
+
+Returns a new sequential table created from the elements provided.
+
+    table.unpack(...)
+
+Same as the Lua base library function unpack.
+
+math 
+
+All standard Lua math library functions are available plus the following additions:
+
+    math.clamp(number, number, number)
+
+Returns min(max(x, minVal), maxVal) where x is the first parameter and minVal
+    and maxVal the second and third parameters.
+
+os  
+
+since 1.3.8.222
+Only the following Lua os library functions are available:
+
+clock
+date
+difftime
+time
+
+bit32 
+
+since 1.1.7.154
+Support for bitwise operations has been back-ported from Lua 5.2. All functions are available inside the table bit32.
+
+utf8 
+
+since 1.3.0.202
+Basic support for UTF-8 encoding has been back-ported from Lua 5.3. All functions are available inside the table utf8.
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Global Functions
+
+              
+
+              
+                TouchOSC provides the following global functions.
+
+    
+• Utility Functions
+        
+            
+• getVersion            
+• getMillis            
+• getDate            
+• hasAccelerometer            
+• getAccelerometer            
+• hasGyroscope            
+• getGyroscope            
+• getBatteryLevel            
+• bytesToInt            
+• bytesToFloat        
+        
+• Message Functions
+        
+            
+• MIDI Messages            
+• Simple OSC Messages            
+• Complex OSC Messages            
+• Bundled OSC Messages        
+    
+    
+• JSON Functions
+        
+            
+• json.fromTable            
+• json.toTable        
+    
+
+Utility Functions 
+
+ 
+
+function getVersion()
+
+-- example
+local t = getVersion()
+print(table.unpack(t))
+> 1 2 5 183 -- major minor patch build
+
+Returns a list containing the application's version as major minor patch
+    build number values.
+
+ 
+
+function getMillis()
+
+-- example
+local n = getMillis()
+print(n)
+> 576970.847
+
+Returns the number of milliseconds since application start.
+
+ 
+
+function getDate()
+
+-- example
+local t = getDate()
+print(table.unpack(t))
+> 2023 10 31 32400 -- year month day tzd
+
+Returns a list with the current local date's year month day tzd
+    number values. tzd refers to the timezone differential in seconds.
+
+ 
+
+function getTime()
+
+-- example
+local t = getTime()
+print(table.unpack(t))
+> 10 11 37 893 -- hour minute second millisecond
+
+Returns a list with the current local time's hour minute second millisecond
+    number values.
+
+ 
+
+function hasAccelerometer()
+
+-- example
+local b = hasAccelerometer()
+print(b)
+> true
+
+Returns true if the host device provides an accelerometer sensor, false otherwise.
+
+ 
+
+function getAccelerometer()
+
+-- example
+local t = getAccelerometer()
+print(table.unpack(t))
+> -8.925 0.134 4.078 -- x y z
+
+Returns a list of three number values that are sampled from the host device's accelerometer sensor. If no
+    accelerometer sensor is available, the values will be all zero.
+
+ 
+
+function hasGyroscope()
+
+-- example
+local b = hasGyroscope()
+print(b)
+> true
+
+Returns true if the host device provides a gyroscope sensor, false otherwise.
+
+ 
+
+function getGyroscope()
+
+-- example
+local t = getGyroscope()
+print(table.unpack(t))
+> -8.925 0.134 4.078 -- x y z
+
+Returns a list of three number values that are sampled from the host device's gyroscope sensor. If no gyroscope
+    sensor is available, the values will be all zero.
+
+ 
+
+function getBatteryLevel()
+
+-- example
+local n = getBatteryLevel()
+print(n)
+> 0.84
+
+Returns the current battery charge level as a number ranging from 0.0 to 1.0 on mobile
+    devices, 1.0 otherwise.
+
+ 
+
+function bytesToInt(number, number, number, number)
+
+-- example
+local i = bytesToInt(0x4D,0x01,0x00,0x00)
+print(i)
+> 333
+
+Returns a number that is the 32-bit integer representation created from the four byte number parameter values
+    given.
+
+ 
+
+function bytesToFloat(number, number, number, number)
+
+-- example
+local f = bytesToFloat(0x00,0x00,0x99,0x42)
+print(f)
+> 76.5
+
+Returns a number that is the 32-bit floating point representation created from the four byte number parameter
+    values.
+
+ 
+
+Message Functions 
+
+TouchOSC provides the following functions to send MIDI and OSC messages.
+
+ 
+
+MIDI Messages 
+
+function sendMIDI(table [, table])
+
+-- example
+sendMIDI({ 176, 0, 102 })            -- control change
+sendMIDI({ 0xF0, 0x00, 0x01, 0xF7 }) -- system exclusive
+
+Send a MIDI message on one or multiple configured connections.
+The first argument table is a list of byte values that make up the MIDI message.
+Starting with version 1.2.1.171 the function will process byte data for multiple messages and continue
+    until either the end of the list or an invalid MIDI message is encountered.
+The optional second argument table is a list of boolean values that specify which connections to send
+    the message on. If the argument is omitted, the default is to broadcast the message on all configured connections. If
+    the list has fewer elements than the number of connections, the omitted elements default to false.
+For more usage examples see the Sending MIDI Messages example.
+
+ 
+
+Simple OSC Messages 
+
+function sendOSC(string [, ... [, table]])
+
+-- example
+sendOSC('/1/fader1', 0.5)
+sendOSC('/3/xy1', 0.25, 0.75)
+sendOSC('/hello', 'world')
+
+Send an OSC message on one or multiple configured connections.
+string is the path of the OSC message to be sent.
+The optional argument values ... will be auto-converted to boolean, float or
+    string OSC types and added to the OSC message as arguments.
+Note that argument values are never auto-converted to integer OSC types as scripts do
+    not treat floating point and integer numbers as separate types. Use the complex OSC
+        message send function instead.
+
+The optional last argument table is a list of boolean values that specify which connections to send the
+    message on. If the argument is omitted, the default is to broadcast the message on all configured connections. If the
+    list has fewer elements than the number of connections, the omitted elements default to false.
+
+For more usage examples see the Sending OSC Messages example.
+
+ 
+
+Complex OSC Messages 
+
+function sendOSC(table [, table])
+
+-- example
+sendOSC(
+  {
+    '/complex',
+    {
+      { tag = 'i', value = 42 },                   -- int
+      { tag = 'f', value = 3.14159 },              -- float
+      { tag = 's', value = 'Goodbye Cruel World' } -- string
+    }
+  }
+)
+
+Sends an OSC message on one or multiple configured connections.
+The first argument table is a list that represents the OSC message to be sent, where the first element
+    is the path string of the message, and the second element is a list of argument tables with tag and
+    value keys for each argument:
+
+{
+    path,
+    {
+        { tag = 'argumentTypeTag', value = argumentValue },
+        { tag = 'argumentTypeTag', value = argumentValue },
+        { tag = 'argumentTypeTag', value = argumentValue },
+        ...
+    }
+}
+
+Each argument value will be converted to an OSC type according to the type tag
+    provided:
+
+    
+        
+            Tag
+            OSC Type
+            
+        
+        
+            T
+            Boolean true
+            
+        
+        
+            F
+            Boolean false
+            
+        
+        
+            N
+            Nil
+            
+        
+        
+            I
+            Infinitum
+            
+        
+        
+            i
+            int32
+            
+        
+        
+            h
+            int64
+            
+        
+        
+            f
+            float32
+            
+        
+        
+            d
+            double
+            
+        
+        
+            s
+            string
+            
+        
+        
+            S
+            symbol
+            since 1.3.9.223 BETA
+        
+        
+            c
+            ASCII character
+            since 1.3.9.223 BETA
+        
+        
+            r
+            32 bit RGBA color
+            since 1.3.9.223 BETA
+        
+        
+            m
+            4 byte MIDI message
+            since 1.3.9.223 BETA
+        
+        
+            b
+            blob
+            
+        
+    
+
+ 
+
+If the tag key is omitted, the value will be auto-converted the same way as when sending simple OSC messages.
+The T F N and I types do not need a value to be specified. 
+The b OSC blob type expects the value to be a list of byte values making up the blob data.
+
+The optional second argument table is a list of boolean values that specify which connections to send
+    the message on. If the argument is omitted, the default is to broadcast the message on all configured connections. If
+    the list has fewer elements than the number of connections, the omitted elements default to false.
+For more usage examples see the Sending OSC Messages example.
+
+ 
+
+Bundled OSC Messages 
+
+function sendOSCBundle(table [, table])
+
+-- example
+sendOSCBundle(
+  {
+    { '/message1', { { tag = 'i', value = 1337 } } },
+    { '/message2', { { tag = 'f', value = 2.71828 } } },
+    { '/message3', { { tag = 's', value = 'Hello World' } } }
+  }
+)
+
+since 1.3.7.218
+Sends one or more OSC messages as a bundle on one or multiple configured connections.
+The first argument table is a list of one or more OSC messages to be sent. The messages are
+    in the same format as described in Complex OSC Messages above.
+The optional second argument table is a list of boolean values that specify which connections to send
+    the message on. If the argument is omitted, the default is to broadcast the message on all configured connections. If
+    the list has fewer elements than the number of connections, the omitted elements default to false.
+For more usage examples see the Sending OSC Messages example.
+
+ 
+
+JSON Functions 
+TouchOSC provides the following functions to convert Lua tables to and from JSON encoded strings. All JSON functions
+    are provided inside the global table json.
+
+ 
+
+function json.fromTable(table)
+
+-- example
+local t = { a = 123, b = 'hey', c = false, d = json.null }
+local str = json.fromTable(t)
+
+since 1.1.8.157
+Convert a Lua table to a JSON encoded string. The special value json.null can be used to store a null
+    value in the Lua table.
+
+    The input table should either be a sequential list of values, which will be converted to the JSON array
+    type, or a list of key/value pairs, which will be converted to the JSON object type.
+
+ 
+
+function json.toTable(string)
+
+-- example
+local str = '{ "a":123, "b":"hey", "c":false, "d":null }'
+local t = json.toTable(str)
+
+since 1.1.8.157
+Parse a JSON encoded string and return the result as a Lua table. The JSON null value will be written to
+    the output table as the special value json.null.
+
+ 
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Objects
+
+              
+
+              
+                TouchOSC defines the following objects to represent its internal and native types.
+
+  
+• Control  
+• Messages  
+• Rectangle  
+• Color  
+• Vectors
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Objects · Control
+
+              
+
+              
+                A control object represents a reference to a single control contained within a TouchOSC document.
+Using this reference most of a control's properties and values can be
+  queried and set. From within a control's script, the self reference can be used to refer to the control's
+  own fields and functions, the root reference (since 1.0.5.109) can be used to refer to the
+  document's root control.
+Each control is assigned a unique ID on creation that remains unchanged during and between
+  application runs, document save/load and editor network transfer.
+All controls live in a document tree hierarchy starting at the document root. All controls except for the root have a
+  reference to a parent control, and some control types are containers for child
+  controls.
+During compilation each script will be checked for the definitions of any of the callback
+  functions listed below, which serve as the main customization points during the various stages of TouchOSC's
+  processing of an application frame.
+
+  
+• Fields
+    
+      
+• ID      
+• type      
+• index      
+• parent      
+• children      
+• properties      
+• values      
+• messages      
+• pointers    
+    
+• Functions
+    
+      
+• getValueField      
+• setValueField      
+• getValueProperty      
+• setValueProperty      
+• notify      
+• findByID      
+• findByType      
+• findAllByType      
+• findByProperty      
+• findAllByProperty      
+• findByName      
+• findAllByName    
+    
+• Callback Functions
+    
+      
+• init      
+• update      
+• onValueChanged      
+• onPointer      
+• onReceiveMIDI      
+• onReceiveOSC      
+• onReceiveGamepad      
+• onReceiveNotify    
+  
+
+Fields 
+
+ 
+
+control.ID
+
+-- example
+local myID = self.ID
+local parentID = self.parent.ID
+print(myID == parentID)
+> false
+
+A unique ID string, generated when the control is created. It remains unchanged over a control's lifetime, during
+  document load/save and during editor network transmission.
+
+ 
+
+control.type
+
+-- example
+local myType = self.type
+print(myType == ControlType.BUTTON)
+> true
+
+Control type numeric constant, one of the ControlType
+  enumeration values.
+
+ 
+
+control.index
+
+-- example
+local myIndex = self.index
+local parentIndex = self.parent.index
+
+The control's position in its parent list of child controls, 1 to n for regular controls, 0
+  for the document root.
+
+ 
+
+control.parent
+
+-- example
+local myParentControl = self.parent
+local noParentControl = root.parent -- will be nil, root has no parent
+
+A reference to the control's parent Control object, or nil for the document root.
+
+ 
+
+control.children
+
+-- example
+self.children.button1.visible = false -- set 'visible' property on child 'button1'
+self.children['button1'].visible = false -- same as the previous line
+local firstChild = self.children[1] -- first child control
+local secondChild = self.children[2] -- second child control
+print(#self.children) -- print the number of child controls
+
+A list of the control's child Control objects. The list can be indexed by control name (a string) or
+  index (a number). Control names are user assignable and not unique.
+
+ 
+
+  
+    
+      
+        Usage
+        Description
+      
+    
+    
+      
+        control.children.name control.children[name]
+        Returns the first child control with name name or nil if none is found. Indexing by
+          name is equivalent to calling control:findByName(name).
+        
+      
+      
+        control.children[1 to n]
+        Returns the child control at index 1 to n or nil if none is found.
+      
+      
+        #control.children
+        Returns the number of child controls.
+      
+    
+  
+
+ 
+
+control.properties
+
+-- example
+self.properties.name = 'new_name'
+self.properties['name'] = 'new_name' -- same as the previous line
+self.name = 'new_name' -- same as the previous line
+self.frame.x = 10
+self.color = Color(1,0,0)
+self.color.r = 0
+print(#self.properties) -- print the number of properties
+
+A list of the control's properties. The list can be indexed by property name (a string) or index (a number). Property
+  names are unique.
+
+ 
+
+  
+    
+      
+        Usage
+        Description
+      
+    
+    
+      
+        control.properties.name control.properties[name]
+        Returns the current value of the property with name name or nil if none is found.
+        
+      
+      
+        control.properties[1 to n]
+        Returns the current value of the property at index 1 to n or nil if none is found.
+          Since version 1.2.6.185 the list is always ordered alphabetically by property name. Earlier versions do not
+            guarantee any particular order.
+        
+      
+      
+        control.properties.keys
+        Returns a list of all property names for the control in alphabetical order.
+      
+      
+        #control.properties
+        Returns the number of properties in the list.
+      
+    
+  
+
+ 
+
+NOTE For convenience, indexing a control reference directly using control.name or
+  control[name], where name is not one of the field or function names listed here, will implicitly index
+  the control's property list with control.properties[name].
+Therefore control.color and control.properties.color will refer to the same property value.
+
+See Control Properties and Values for a list of possible properties for
+  each control type.
+
+ 
+
+control.values
+
+-- example
+self.values.x = 1
+self.values['x'] = 1 -- same as the previous line
+print(#self.values) -- print the number of values
+
+A list of the control's values. The list can be indexed by value name (a string) or index
+  (a number). Value names are unique.
+
+ 
+
+  
+    
+      
+        Usage
+        Description
+      
+    
+    
+      
+        control.values.name control.values[name]
+        Returns the current value of the control value with name name or nil if none is
+          found.
+        
+      
+      
+        control.values[1 to n]
+        Returns the current value of the value at index 1 to n or nil if none is found.
+          Since version 1.2.6.185 the list is always ordered alphabetically by value name, with the value named touch
+            always at the end of the list. Earlier versions do not guarantee any particular order.
+        
+      
+      
+        control.values.keys
+        Returns a list of all value names for the control in alphabetical order with the value name touch
+          always at the end of the list.
+        
+      
+      
+        #control.values
+        Returns the number of values in the list.
+      
+    
+  
+
+ 
+
+See Control Properties and Values for a list of possible values for each
+  control type.
+
+ 
+
+control.messages
+
+-- example
+local midiMessages = self.messages.MIDI -- same as: self.messages[1]
+local oscMessages = self.messages.OSC -- same as: self.messages[2]
+local localMessages = self.messages.LOCAL -- same as: self.messages[3]
+local gamepadMessages = self.messages.GAMEPAD -- same: as self.messages[4]
+print(#self.messages)
+> 4
+
+since 1.2.6.185
+A list of the control's messages, containing separate lists for each message type. The list can be indexed by
+
+  
+• message type name (a string): MIDI, OSC, LOCAL, GAMEPAD  
+• index (a number): 1 - 4
+
+The messages in each of the lists will be in the same order as they are displayed in the editor UI.
+
+See Script · Objects · Messages for a description of the four message object
+  types.
+
+ 
+
+control.pointers
+
+-- example
+local pointer = self.pointers[1]
+print(pointer.ID,
+      pointer.x, pointer.y,
+      pointer.state,
+      pointer.created, pointer.modified)
+> 0 33.285 20.393 1 1836924.838 1836914.867
+
+A list containing one table for each pointer currently associated with the control during the current frame with the
+  following table keys per pointer:
+
+ 
+
+  
+    
+      
+        Key
+        Description
+      
+    
+    
+      
+        ID
+        The numeric ID of the pointer. Constant during the pointers' lifetime.
+      
+      
+        x
+        The x position of the pointer.
+      
+      
+        y
+        The y position of the pointer.
+      
+      
+        state
+        The current state of the pointer, one of the possible values of the PointerState enumeration.
+        
+      
+      
+        created
+        The time the pointer event began, in milliseconds as returned by the getMillis global function.
+        
+      
+      
+        modified
+        The time of the last modification of this pointer, in milliseconds as returned by the getMillis global function.
+        
+      
+    
+  
+
+ 
+
+Each pointer progresses through the states in the PointerState enumeration during its lifetime:
+
+  
+• After being created the pointer will be in state PointerState.BEGIN for one frame.  
+• During its lifetime the pointer will be either in state PointerState.ACTIVE or PointerState.MOVE
+    depending on whether the pointer's position has changed since the last frame.
+    
+• When the pointer event ends it will be in state PointerState.END for one frame and will then be
+    removed from the list of pointers.
+  
+
+See Control Callback Functions for more pointer example use.
+
+ 
+
+Functions 
+
+ 
+
+function getValueField(string, field)
+
+-- example
+self:getValueField('x', ValueField.CURRENT) -- same as: self.values.x
+self:getValueField('x', ValueField.DEFAULT)
+
+Returns a value field of the control value with name string, or nil if none is found.
+The parameter field can be one of the possible values of the ValueField enumeration and determines which value is
+  returned:
+
+  
+• ValueField.CURRENT - Returns the current value.  
+• ValueField.LAST - Returns the value before the last change.  
+• ValueField.DEFAULT - Returns the default value.
+Invoking the function with field parameter ValueField.CURRENT is equivalent to referencing
+  control.values[string].
+See Control Properties and Values for a list of possible values for each
+  control type.
+
+ 
+
+function setValueField(string, field, value)
+
+-- example
+self:setValueField('x', ValueField.CURRENT, 1.0) -- same as: self.values.x = 1.0
+self:setValueField('x', ValueField.DEFAULT, 0.5)
+
+since 1.0.5.109
+Set a value field of the control value with name string.
+The parameter field can be one of the following values of the ValueField enumeration, and determines which value field will
+  be set:
+
+  
+• ValueField.CURRENT - Set the current value.  
+• ValueField.DEFAULT - Set the default value.
+Invoking the function with field parameter ValueField.CURRENT is equivalent to calling
+  control.values[string] = value.
+
+ 
+
+function getValueProperty(string, property)
+
+-- example
+local valueLocked = self:getValueProperty('x', ValueProperty.LOCKED)
+local valueType = self:getValueProperty('x', ValueProperty.TYPE)
+print(valueType == ValueType.FLOAT)
+> true
+
+Returns the value of the property property of the control value with name string, or nil
+  if none is found.
+The parameter property can be one of the possible values of the ValueProperty enumeration and determines which property
+  value is returned:
+
+  
+• ValueProperty.TYPE - The type of the value, one of the possible values of the ValueType enumeration
+    
+• ValueProperty.LOCKED - Locked state of the value, a boolean value  
+• ValueProperty.LOCKED_DEFAULT_CURRENT - Default and current value locked state, a boolean value  
+• ValueProperty.DEFAULT_PULL - Default pull of the value, an integer value ranging from 0
+    to 100
+
+See Control Properties and Values for a list of possible values for each
+  control type.
+
+ 
+
+function setValueProperty(string, property, value)
+
+-- example
+self:setValueProperty('x', ValueProperty.LOCKED, false)
+self:setValueProperty('x', ValueProperty.DEFAULT_PULL, 50)
+
+Set the value of the property property of the control value with name string.
+The parameter property can be one of the possible values of the ValueProperty enumeration with the exception of ValueProperty.TYPE
+  and determines which property value is set.
+See the getValueProperty function above for a description of the possible value properties.
+See Control Properties and Values for a list of possible values for each
+  control type.
+
+ 
+
+function notify(string [, value])
+
+-- example
+self.parent:notify('hello parent')
+self.children.button1:notify('hello child', self.name)
+self.children.button2:notify('hello child', 1.5)
+
+Invokes the onReceiveNotify callback function on another control.
+The parameter string and an optional parameter value will be copied to the receiving
+  control's Lua context and passed to the onReceiveNotify
+  callback function, only if that callback function is defined in the receiving control's script. Calling the function
+  on self has no effect.
+The optional parameter value can be of type boolean, number,
+  string, table or any of TouchOSC's object types.
+Please note that because the parameter values have to be copied between Lua execution contexts and because this
+  introduces overhead, it is advisable not to invoke the notify function from inside the
+  update function every frame.
+
+ 
+
+function findByID(string [, boolean])
+
+-- example
+local buttonID = self.children.button1.ID
+local childButton = self:findByID(buttonID)
+
+Returns the child Control object with ID string or nil if none is found. The
+  optional boolean parameter determines if the search will be recursive and descend the child control
+  hierarchy, defaults to false.
+
+ 
+
+function findByType(controltype [, boolean])
+
+-- example
+local firstChildButton = self:findByType(ControlType.BUTTON)
+local firstChildFader = self:findByType(ControlType.FADER)
+
+since 1.0.2.98
+Returns the first child Control object whose type matches controltype or nil
+  if none is found. The controltype parameter can be any of the ControlType
+  enumeration values. The optional boolean parameter determines if the search will be recursive and descend
+  the child control hierarchy, defaults to false.
+
+ 
+
+function findAllByType(controltype [, boolean])
+
+-- example
+local allChildButtons = self:findAllByType(ControlType.BUTTON)
+local allChildFaders = self:findAllByType(ControlType.FADER)
+
+since 1.0.2.98
+Returns a list of child Control objects whose types match controltype or an empty list if
+  none are found. The controltype parameter can be any of the ControlType
+  enumeration values. The optional boolean parameter determines if the search will be recursive and descend
+  the child control hierarchy, defaults to false.
+
+ 
+
+function findByProperty(string, value [, boolean])
+
+-- example
+local firstRedControl = self:findByProperty('color', Color(1,0,0))
+local firstHiddenControl = self:findByProperty('visible', false)
+
+since 1.0.2.98
+Returns the first child Control object whose current value of the property named string
+  matches the provided value or nil if none is found. The optional boolean
+  parameter determines if the search will be recursive and descend the child control hierarchy, defaults to
+  false.
+
+ 
+
+function findAllByProperty(string, value [, boolean])
+
+-- example
+local allRedControls = self:findAllByProperty('color', Color(1,0,0))
+local allHiddenControls = self:findAllByProperty('visible', false)
+
+since 1.0.2.98
+Returns a list of child Control objects whose current values of the property named string
+  matches the provided value or an empty list if none are found. The optional boolean
+  parameter determines if the search will be recursive and descend the child control hierarchy, defaults to
+  false.
+
+ 
+
+function findByName(string [, boolean])
+
+-- example
+local childButton1 = self:findByName('button1') -- same as: self.children.button1
+local childFader1 = self:findByName('fader1') -- same as: self.children.fader1
+
+Equivalent to calling findByProperty('name', string [, boolean]).
+
+ 
+
+function findAllByName(string [, boolean])
+
+-- example
+local allChildrenNamedA = self:findAllByName('A')
+
+Equivalent to calling findAllByProperty('name', string [, boolean]).
+
+ 
+
+Callback Functions 
+
+If any of the following functions are defined in a control's script, these callback functions are invoked during the
+  various stages of processing of an application frame.
+When considering a script function for registration as a callback, the parameter declarations are optional and the
+  function will be called regardless of the parameters being omitted or not.
+See Control Callback Functions for example implementations.
+
+ 
+
+function init()
+
+-- example
+function init()
+  print("init")
+end
+
+since 1.0.8.122
+Called once when the application transitions from editing mode to control surface mode.
+Note that this function might be called again under certain conditions:
+
+  
+• When the application comes back to the foreground after being suspended on a mobile device  
+• When the application is running as editor network client and receives updates from
+    the server that significantly change the structure of the local document
+  
+
+ 
+
+function update()
+
+-- example
+function update()
+  print("Elapsed ms:", getMillis())
+end
+
+Called once per application frame after all processing of user input and received messages has
+  completed.
+
+ 
+
+function onValueChanged(string)
+
+-- example
+function onValueChanged(valueName)
+  print("Value of ", valueName, "has changed to", self.values[valueName])
+end
+
+Called after any of the control's values have changed, once for each changed value, and before
+  any further processing as a result of the change.
+The parameter string is the name of the value that has changed. It is valid to set the changed value
+  again from inside the callback, but note that the callback will not be invoked again as a result.
+
+Returning true from this callback will end any further processing TouchOSC would normally do as a result
+  of the change (ie sending of messages).
+
+ 
+
+function onPointer(table)
+
+-- example
+function onPointer(pointers)
+  print('onPointer')
+  for i=1,#pointers do
+    local pointer = pointers[i]
+    print('\t', pointer.ID,
+          pointer.x, pointer.y,
+          pointer.state,
+          pointer.created, pointer.modified)
+  end
+end
+
+Called after processing of user input is complete and all active pointers (mouse cursor or touch
+  input) have been mapped and assigned to any controls, and before any further processing of the
+  pointer state and internal control behavior in response to the pointer input is evaluated.
+Will only be invoked if there are any pointers associated with the control during the current frame.
+The table passed as parameter to the callback contains a list of one or more pointers that have been
+  selected as the significant event input according to the control's configuration and do not necessarily
+  include all pointers currently associated with the control.
+For example, a button type control will commonly only be interested in a single significant
+  touch input, which will be selected by the application and passed to the control for processing based on the control's
+  configuration.
+To access all pointers currently associated with a control access the control.pointers
+  field.
+Returning true from this callback will end any further processing TouchOSC would normally do for the
+  current control as a result of the input (ie changing a control's values).
+For a description of the pointer table format and pointer states see the control.pointers
+  field.
+
+ 
+
+function onReceiveMIDI(message, connections)
+
+-- example
+function onReceiveMIDI(message, connections)
+  print('onReceiveMIDI')
+  print('\t message     =', table.unpack(message))
+  print('\t connections =', table.unpack(connections))
+end
+
+Called after receiving a MIDI message and determining that the control should be a receiver of the
+  message according to the routing table, and before any further evaluation or processing of potential
+  changes to a control's values or properties.
+Returning true from this callback will end any further processing TouchOSC would normally do for the
+  current control as a result of receiving the message (ie changing a control's values or properties).
+NOTE If it is defined, the document root's onReceiveMIDI callback function will always
+  be invoked first, and if true is returned from that callback, processing of the message will end, it will
+  not be passed along to any other controls in the routing table and no further callbacks will be invoked.
+For the format of the message and connections parameters see the sendMIDI
+  function.
+
+ 
+
+function onReceiveOSC(message, connections)
+
+-- example
+function onReceiveOSC(message, connections)
+  print('onReceiveOSC')
+  local path = message[1]
+  local arguments = message[2]
+  print('\t path        =', path)
+  for i=1,#arguments do
+    print('\t argument    =', arguments[i].tag, arguments[i].value)
+  end
+  print('\t connections =', table.unpack(connections))
+end
+
+Called after receiving an OSC message and determining that the control should be a receiver of the
+  message according to the routing table, and before any further evaluation or processing of potential
+  changes to a control's values or properties.
+Returning true from this callback will end any further processing TouchOSC would normally do for the
+  current control as a result of receiving the message (ie changing a control's values or properties).
+NOTE If it is defined, the document root's onReceiveOSC callback function will always
+  be invoked first, and if true is returned from that callback, processing of the message will end, it will
+  not be passed along to any other controls in the routing table and no further callbacks will be invoked.
+For the format of the message and connections parameters see the sendOSC function for complex messages.
+
+ 
+
+function onReceiveGamepad(input, value, connections)
+
+-- example
+function onReceiveGamepad(input, value, connections)
+  print('onReceiveGamepad')
+  print('\t input       =', input) -- one of the GamepadInput enumeration values
+  print('\t value       =', value)
+  print('\t connections =', table.unpack(connections))
+end
+
+since 1.1.0.132
+Called after receiving input from a connected game controller and determining that the control
+  should be a receiver of the input according to the routing table, and before any further evaluation
+  or processing of potential changes to a control's values or properties.
+Returning true from this callback will end any further processing TouchOSC would normally do for the
+  current control as a result of receiving the input (ie changing a control's values or properties).
+NOTE If it is defined, the document root's onReceiveGamepad callback function will
+  always be invoked first, and if true is returned from that callback, processing of the message will end,
+  it will not be passed along to any other controls in the routing table and no further callbacks will be invoked.
+
+  The first parameter input will be one of the possible values of the GamepadInput enumeration.
+
+  The second parameter value will be the raw, numeric value as received by the game controller.
+
+See the Control Callback Functions sample script for an
+  example of how to handle game controller messages.
+
+ 
+
+function onReceiveNotify(string [, value])
+
+-- example
+function onReceiveNotify(key, value)
+  print('onReceiveNotify')
+  print('\t key   =', key)
+  print('\t value =', value)
+end
+
+Called as a result of the control's notify function being called by
+  another control.
+The parameters string and an optional value will be copied from the calling control's Lua
+  context to the receiving control's Lua context and passed as parameters to the callback function.
+Please note that because the parameter values have to be copied between Lua execution contexts and because this
+  introduces overhead, it is advisable not to invoke the notify function from inside the
+  update function every frame.
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Objects · Messages
+
+              
+
+              
+                Script objects representing the different types of messages associated with a control.
+The objects representing the different message types described here can be accessed via a control's messages field.
+
+  
+• MIDIMessage
+    
+      
+• Fields
+        
+          
+• enabled          
+• send          
+• receive          
+• feedback          
+• noDuplicates          
+• connections        
+            
+• Functions
+        
+          
+• trigger          
+• data        
+          
+  
+
+  
+• OSCMessage
+    
+      
+• Fields
+        
+          
+• enabled          
+• send          
+• receive          
+• feedback          
+• noDuplicates          
+• connections        
+            
+• Functions
+        
+          
+• trigger          
+• data        
+          
+  
+
+  
+• LocalMessage
+    
+      
+• Fields
+        
+          
+• enabled        
+            
+• Functions
+        
+          
+• trigger        
+          
+  
+
+  
+• GamePadMessage
+    
+      
+• Fields
+        
+          
+• enabled          
+• connections        
+          
+  
+
+MIDIMessage 
+An object representing a single MIDI message in a control's list
+  of MIDI messages.
+
+Fields 
+The following fields allow to dynamically configure some of the same properties that are available in the editor
+  UI.
+ 
+
+message.enabled
+
+-- example
+self.messages.MIDI[1].enabled = false
+
+since 1.2.6.185
+A boolean value. Enable or disable the message.
+See Editor · Messages · MIDI.
+
+ 
+
+message.send
+
+-- example
+self.messages.MIDI[1].send = false
+
+since 1.2.6.185
+A boolean value. Enable or disable the sending of the message.
+See Editor · Messages · MIDI.
+
+ 
+
+message.receive
+
+-- example
+self.messages.MIDI[1].receive = false
+
+since 1.2.6.185
+A boolean value. Enable or disable the receiving of the message.
+See Editor · Messages · MIDI.
+
+ 
+
+message.feedback
+
+-- example
+self.messages.MIDI[1].feedback = false
+
+since 1.2.6.185
+A boolean value. Enable or disable allowing message feedback (sending) immediately after receiving.
+See Editor · Messages · MIDI.
+
+ 
+
+message.noDuplicates
+
+-- example
+self.messages.MIDI[1].noDuplicates = true
+
+since 1.3.5.212
+A boolean value. Enable or disable allowing identical messages to be sent in succession.
+See Editor · Messages · MIDI.
+
+ 
+
+message.connections
+
+-- example
+local firstMessage = self.messages.MIDI[1]
+firstMessage.connections[1] = false
+firstMessage.connections[3] = true
+print(#firstMessage.connections)
+> 5
+
+since 1.2.6.185
+A list of boolean values for each of the connections the message should be sent or received on.
+This list currently has ten entries, but the number is subject to change in a future release and will always be the
+  same number as connections available in the MIDI connection
+    configuration.
+
+See Editor · Messages · MIDI.
+
+Functions 
+
+ 
+
+message:trigger()
+
+-- example
+self.messages.MIDI[1]:trigger()
+
+since 1.2.9.200
+Trigger and potentially send the message.
+Process the message in the same way as if one of its configured triggers had been set. If both the
+  Enabled and Send fields of the message are enabled, the message will be sent on its
+  configured connections.
+Note that the No Duplicates flag might still prevent the sending of the message.
+See Editor · Messages · MIDI.
+
+ 
+
+message:data()
+
+-- example
+local message_data = self.messages.MIDI[1]:data()
+sendMIDI(message_data) -- send on all connections
+sendMIDI(message_data, {true, false, false, false, false}) -- send on first connection
+sendMIDI(message_data, self.messages.MIDI[1].connections) -- send on message's configured connections
+
+since 1.2.9.200
+Return the message data prepared for sending.
+Process the message based on its current configuration and return the message data in the format used by the sendMIDI
+  and onReceiveMIDI functions (ie a list of byte values making up the MIDI message).
+Note: The Enabled and Send fields will not be considered.
+See Script · Global Functions · MIDI Messages.
+
+ 
+
+OSCMessage 
+An object representing a single OSC message in a control's list of
+  OSC messages.
+
+Fields 
+The following fields allow to dynamically configure some of the same properties that are available in the editor
+  UI.
+ 
+
+message.enabled
+
+-- example
+self.messages.OSC[1].enabled = false
+
+since 1.2.6.185
+A boolean value. Enable or disable the message.
+See Editor · Messages · OSC.
+
+ 
+
+message.send
+
+-- example
+self.messages.OSC[1].send = false
+
+since 1.2.6.185
+A boolean value. Enable or disable the sending of the message.
+See Editor · Messages · OSC.
+
+ 
+
+message.receive
+
+-- example
+self.messages.OSC[1].receive = false
+
+since 1.2.6.185
+A boolean value. Enable or disable the receiving of the message.
+See Editor · Messages · OSC.
+
+ 
+
+message.feedback
+
+-- example
+self.messages.OSC[1].feedback = false
+
+since 1.2.6.185
+A boolean value. Enable or disable allowing message feedback (sending) immediately after receiving.
+See Editor · Messages · OSC.
+
+ 
+
+message.noDuplicates
+
+-- example
+self.messages.OSC[1].noDuplicates = true
+
+since 1.3.5.212
+A boolean value. Enable or disable allowing identical messages to be sent in succession.
+See Editor · Messages · OSC.
+
+ 
+
+message.connections
+
+-- example
+local firstMessage = self.messages.OSC[1]
+firstMessage.connections[1] = false
+firstMessage.connections[3] = true
+print(#firstMessage.connections)
+> 5
+
+since 1.2.6.185
+A list of boolean values for each of the connections the message should be sent or received on.
+This list currently has ten entries, but the number is subject to change in a future release and will always be the
+  same number as connections available in the OSC connection
+    configuration.
+
+See Editor · Messages · OSC.
+
+Functions 
+
+ 
+
+message:trigger()
+
+-- example
+self.messages.OSC[1]:trigger()
+
+since 1.2.9.200
+Trigger and potentially send the message.
+Process the message in the same way as if one of its configured triggers had been set. If both the
+  Enabled and Send fields of the message are enabled, the message will be sent on its
+  configured connections.
+Note that the No Duplicates flag might still prevent the sending of the message.
+See Editor · Messages · OSC.
+
+ 
+
+message:data()
+
+-- example
+local message_data = self.messages.OSC[1]:data()
+sendOSC(message_data) -- send on all connections
+sendOSC(message_data, {true, false, false, false, false}) -- send on first connection
+sendOSC(message_data, self.messages.OSC[1].connections) -- send on message's configured connections
+
+since 1.2.9.200
+Return the message data prepared for sending.
+Process the message based on its current configuration and return the message data in the format used by the sendOSC
+  and onReceiveOSC functions.
+Note: The Enabled and Send fields will not be considered.
+See Script · Global Functions · OSC
+  Messages.
+
+ 
+
+LocalMessage 
+An object representing a single Local message in a control's
+  list of Local messages.
+
+Fields 
+The following fields allow to dynamically configure some of the same properties that are available in the editor
+  UI.
+ 
+
+message.enabled
+
+-- example
+self.messages.LOCAL[1].enabled = false
+
+since 1.2.6.185
+A boolean value. Enable or disable the message.
+See Editor · Messages · Local.
+
+Functions 
+
+ 
+
+message:trigger()
+
+-- example
+self.messages.LOCAL[1]:trigger()
+
+since 1.2.9.200
+Trigger and potentially send the message.
+Process the message in the same way as if one of its configured triggers had been set. If the Enabled
+  field of the message is enabled, the message will be sent.
+See Editor · Messages · LOCAL.
+
+ 
+
+GamePadMessage 
+An object representing a single Gamepad message in a control's
+  list of Gamepad messages.
+The following fields allow to dynamically configure some of the same properties that are available in the editor
+  UI.
+ 
+
+message.enabled
+
+-- example
+self.messages.GAMEPAD[1].enabled = false
+
+since 1.2.6.185
+A boolean value. Enable or disable the message.
+See Editor · Messages · Gamepad.
+
+ 
+
+message.connections
+
+-- example
+local firstMessage = self.messages.GAMEPAD[1]
+firstMessage.connections[1] = false
+firstMessage.connections[3] = true
+print(#firstMessage.connections)
+> 4
+
+since 1.2.6.185
+A list of boolean values for each of the connections the message received on.
+This list currently has four entries, but the number is subject to change in a future release and will always be the
+  same number as connections available in the Gamepad connection
+    configuration.
+
+See Editor · Messages · Gamepad.
+
+ 
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Objects · Rectangle
+
+              
+
+              
+                A rectangle object native to TouchOSC. Will be returned and can be passed anywhere a rectangle is required.
+
+  
+• Fields  
+• Constructor Functions  
+• Functions
+
+Fields 
+
+ 
+
+rectangle.x
+
+The x position of the rectangle.
+
+ 
+
+rectangle.y
+
+The y position of the rectangle.
+
+ 
+
+rectangle.w
+
+The width of the rectangle.
+
+ 
+
+rectangle.h
+
+The height of the rectangle.
+
+ 
+
+Constructor Functions 
+
+ 
+
+function Rectangle()                               -- [1]
+function Rectangle(rectangle)                      -- [2]
+function Rectangle(number, number)                 -- [3]
+function Rectangle(number, number, number, number) -- [4]
+
+Returns a new rectangle object with
+
+  
+• position and size set to (0,0).  
+• position and size copied from another Rectangle object.  
+• position set to (0,0) and size set to the two numbers.  
+• position set to the first pair of numbers and size set to the second two numbers.
+
+ 
+
+Functions 
+
+ 
+
+function contains(number, number)
+
+-- example
+local r = Rectangle(10,10,50,50)
+local b = r:contains(20,20)
+print(b)
+> true
+
+Tests if the point at position (number, number) is contained within the rectangle and returns a boolean
+  value.
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Objects · Color
+
+              
+
+              
+                A color object native to TouchOSC. Will be returned and can be passed anywhere a color is required. Color components
+  are stored as floating point values ranging from 0.0 to 1.0.
+
+  
+• Fields  
+• Constructor Functions  
+• Static Functions  
+• Operators
+
+Fields 
+
+ 
+
+color.r
+
+The red component of the color.
+
+ 
+
+color.g
+
+The green component of the color.
+
+ 
+
+color.b
+
+The blue component of the color.
+
+ 
+
+color.a
+
+The alpha component of the color.
+
+ 
+
+Constructor Functions 
+
+ 
+
+function Color()                               -- [1]
+function Color(color)                          -- [2]
+function Color(number)                         -- [3]
+function Color(number, number)                 -- [4]
+function Color(number, number, number)         -- [5]
+function Color(number, number, number, number) -- [6]
+
+Returns a new color object with
+
+  
+• all components initialized with 0.0.  
+• all components copied from another Color object.  
+• all components initialized with number.  
+• rgb components initialized with the first number, the a component initialized with the
+    second number.
+    
+• rgb components initialized with the three numbers, the a component initialized with
+    1.0  
+• rgba components initialized with the four numbers provided.
+
+ 
+
+Static functions 
+
+ 
+
+function Color.toHexString(color)
+
+-- example
+local redColor = Color(1,0,0)
+print(Color.toHexString(redColor))
+> FF0000FF
+
+Returns a hexadecimal string representation of the color in the format RRGGBBAA.
+
+ 
+
+function Color.fromHexString(string)
+
+-- example
+local red = Color.fromHexString('FF0000FF')
+local blue = cColor.fromHexString('0000FF')
+local grayAlpha = Color.fromHexString('FF80');
+local gray = Color.fromHexString('80');
+
+Returns a color object created from the hexadecimal string representation. The string can be in one of the following
+  formats: RRGGBBAA, RRGGBB, GGAA, GG, with the latter two forms
+  creating a grayscale color from the GG value.
+
+ 
+
+Operators 
+
+ 
+
+-- multiplication
+color * color
+color * number
+
+-- division
+color / color
+color / number
+
+-- addition
+color + color
+color + number
+
+-- subtraction
+color - color
+color - number
+
+All operators operate component-wise and return a new color object.
+
+ 
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Objects · Vectors
+
+              
+
+              
+                TouchOSC provides 2,3 and 4 component vector types as Vec2 Vec3 Vec4 objects.
+
+  
+• Fields  
+• Constructor Functions  
+• Functions  
+• Operators
+
+Fields 
+
+ 
+
+vec2.x
+vec3.x
+vec4.x
+
+The x component of the vector.
+
+ 
+
+vec2.y
+vec3.y
+vec4.y
+
+The y component of the vector.
+
+ 
+
+vec3.z
+vec4.z
+
+The z component of the vector.
+
+ 
+
+vec4.w
+
+The w component of the vector.
+
+ 
+
+Constructor Functions 
+
+ 
+
+function Vec2()                                -- [1]
+function Vec2(vec2)                            -- [2]
+function Vec2(number)                          -- [3]
+function Vec2(number, number)                  -- [4]
+
+function Vec3()                                -- [1]
+function Vec3(vec3)                            -- [2]
+function Vec3(number)                          -- [3]
+function Vec3(number, number, number)          -- [4]
+
+function Vec4()                                -- [1]
+function Vec4(vec4)                            -- [2]
+function Vec4(number)                          -- [3]
+function Vec4(number, number, number, number)  -- [4]
+
+Returns a new vector object with
+
+  
+• all components initialized with 0.0.  
+• all components copied from another vector object.  
+• all components initialized with number.  
+• each component initialized with the numbers provided.
+
+ 
+
+Functions 
+
+ 
+
+function length()
+
+-- example
+local v = Vec2(1,0)
+local l = v:length()
+print(l)
+> 1
+
+Returns the length of the vector
+
+ 
+
+function normalize()
+
+-- example
+local v = Vec2(1,1)
+local n = v:normalize()
+
+Returns a new vector that is the normalized vector
+
+ 
+
+Operators 
+
+ 
+
+-- multiplication
+vector * vector
+vector * number
+
+-- division
+vector / vector
+vector / number
+
+-- addition
+vector + vector
+vector + number
+
+-- subtraction
+vector - vector
+vector - number
+
+All operators operate component-wise and return a new vector object.
+
+ 
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Enumerations
+
+              
+
+              
+                
+  
+• AlignH  
+• AlignV  
+• ButtonType  
+• ControlType  
+• CursorDisplay  
+• Font  
+• GamepadInput  
+• MIDIMessageType  
+• Orientation  
+• OutlineStyle  
+• PointerPriority  
+• PointerState  
+• RadioType  
+• Response  
+• Shape  
+• ValueField  
+• ValueProperty  
+• ValueType
+
+AlignH 
+Possible values for a Control object's textAlignH property.
+
+  
+• AlignH.LEFT  
+• AlignH.CENTER  
+• AlignH.RIGHT
+
+ 
+
+AlignV 
+Possible values for a Control object's textAlignV property.
+
+  
+• AlignV.TOP  
+• AlignV.MIDDLE  
+• AlignV.BOTTOM
+
+ 
+
+ButtonType 
+Possible values for a Control object's buttonType property.
+
+  
+• ButtonType.MOMENTARY  
+• ButtonType.TOGGLE_RELEASE  
+• ButtonType.TOGGLE_PRESS
+
+ 
+
+ControlType 
+Possible values for a Control object's type field.
+
+  
+• ControlType.BOX  
+• ControlType.BUTTON  
+• ControlType.LABEL  
+• ControlType.TEXT  
+• ControlType.FADER  
+• ControlType.XY  
+• ControlType.RADIAL  
+• ControlType.ENCODER  
+• ControlType.RADAR  
+• ControlType.RADIO  
+• ControlType.GROUP  
+• ControlType.PAGER  
+• ControlType.GRID
+
+ 
+
+CursorDisplay 
+
+  
+• CursorDisplay.ALWAYS  
+• CursorDisplay.ACTIVE  
+• CursorDisplay.INACTIVE
+
+ 
+
+Font 
+since 1.0.4.106
+Possible values for a Control object's font property.
+
+  
+• Font.DEFAULT  
+• Font.MONOSPACED
+
+ 
+
+GamepadInput 
+since 1.1.0.132
+
+  
+• GamepadInput.STICK_LEFT_X  
+• GamepadInput.STICK_LEFT_Y  
+• GamepadInput.STICK_RIGHT_X  
+• GamepadInput.STICK_RIGHT_Y  
+• GamepadInput.TRIGGER_LEFT  
+• GamepadInput.TRIGGER_RIGHT  
+• GamepadInput.BUTTON_UP  
+• GamepadInput.BUTTON_DOWN  
+• GamepadInput.BUTTON_LEFT  
+• GamepadInput.BUTTON_RIGHT  
+• GamepadInput.BUTTON_A  
+• GamepadInput.BUTTON_B  
+• GamepadInput.BUTTON_X  
+• GamepadInput.BUTTON_Y  
+• GamepadInput.BUTTON_STICK_LEFT  
+• GamepadInput.BUTTON_STICK_RIGHT  
+• GamepadInput.BUMPER_LEFT  
+• GamepadInput.BUMPER_RIGHT  
+• GamepadInput.BUTTON_START  
+• GamepadInput.BUTTON_SELECT  
+• GamepadInput.BUTTON_HOME
+
+ 
+
+MIDIMessageType
+
+  
+• MIDIMessageType.NOTE_OFF  
+• MIDIMessageType.NOTE_ON  
+• MIDIMessageType.POLYPRESSURE  
+• MIDIMessageType.CONTROLCHANGE  
+• MIDIMessageType.PROGRAMCHANGE  
+• MIDIMessageType.CHANNELPRESSURE  
+• MIDIMessageType.PITCHBEND  
+• MIDIMessageType.SYSTEMEXCLUSIVE  
+• MIDIMessageType.QUARTERFRAME  
+• MIDIMessageType.SONGPOSITION  
+• MIDIMessageType.SONGSELECT  
+• MIDIMessageType.CLOCK  
+• MIDIMessageType.START  
+• MIDIMessageType.CONTINUE  
+• MIDIMessageType.STOP  
+• MIDIMessageType.ACTIVESENSING  
+• MIDIMessageType.SYSTEMRESET
+
+ 
+
+Orientation 
+Possible values for a Control object's orientation property.
+
+  
+• Orientation.NORTH  
+• Orientation.EAST  
+• Orientation.SOUTH  
+• Orientation.WEST
+
+ 
+
+OutlineStyle 
+Possible values for a Control object's outlineStyle property.
+
+  
+• OutlineStyle.FULL  
+• OutlineStyle.CORNERS  
+• OutlineStyle.EDGES
+
+ 
+
+PointerPriority 
+
+  
+• PointerPriority.OLDEST  
+• PointerPriority.NEWEST
+
+ 
+
+PointerState 
+
+  
+• PointerState.BEGIN  
+• PointerState.ACTIVE  
+• PointerState.MOVE  
+• PointerState.END
+
+ 
+
+RadioType 
+Possible values for a Control object's radioType property.
+
+  
+• RadioType.SELECT  
+• RadioType.METER
+
+ 
+
+Response 
+Possible values for a Control object's response property.
+
+  
+• Response.ABSOLUTE  
+• Response.RELATIVE
+
+ 
+
+Shape 
+Possible values for a Control object's shape property.
+
+  
+• Shape.RECTANGLE  
+• Shape.CIRCLE  
+• Shape.TRIANGLE  
+• Shape.DIAMOND  
+• Shape.PENTAGON  
+• Shape.HEXAGON
+
+ 
+
+ValueField 
+
+  
+• ValueField.CURRENT  
+• ValueField.LAST  
+• ValueField.DEFAULT
+
+ 
+
+ValueProperty 
+
+  
+• ValueProperty.TYPE  
+• ValueProperty.LOCKED  
+• ValueProperty.LOCKED_DEFAULT_CURRENT  
+• ValueProperty.DEFAULT_PULL
+
+ 
+
+ValueType 
+
+  
+• ValueType.BOOLEAN  
+• ValueType.INTEGER  
+• ValueType.FLOAT  
+• ValueType.STRING
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Constants
+
+              
+
+              
+                Colors
+
+  
+• Colors.clear  
+• Colors.black  
+• Colors.white  
+• Colors.red  
+• Colors.green  
+• Colors.blue  
+• Colors.orange  
+• Colors.yellow  
+• Colors.cyan  
+• Colors.purple  
+• Colors.violet  
+• Colors.gray  
+• Colors.darkGray  
+• Colors.lightGray
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Properties and Values
+
+              
+
+              
+                
+  In this reference we list the names and types of the properties and values for each control type, for access from
+  control scripts.
+
+  For a description of the meaning and effects of each property and value, please see the Properties, Values and Control Reference sections.
+
+  
+• Common  
+• BOX  
+• BUTTON  
+• LABEL  
+• TEXT  
+• FADER  
+• XY  
+• RADIAL  
+• ENCODER  
+• RADAR  
+• RADIO  
+• PAGER
+
+Common 
+Properties and values that are common to all controls, independent of their type. Not all control types will utilize
+  the value of these properties.
+Properties
+
+  
+    
+      
+        Name
+        Description
+        Since
+      
+    
+    
+      
+        name
+        A user-editable string.
+        
+      
+      
+        tag
+        A user-editable string.
+        1.0.2.98
+      
+      
+        frame
+        A Rectangle object.
+        
+      
+      
+        color
+        A Color object.
+        
+      
+      
+        visible
+        A boolean value.
+        
+      
+      
+        interactive
+        A boolean value.
+        
+      
+      
+        background
+        A boolean value.
+        
+      
+      
+        outline
+        A boolean value.
+        
+      
+      
+        outlineStyle
+        One of the possible values of the OutlineStyle enumeration.
+        
+      
+      
+        grabFocus
+        A boolean value.
+        
+      
+      
+        pointerPriority
+        One of the possible values of the PointerPriority enumeration.
+        
+        
+      
+      
+        cornerRadius
+        An integer number value ranging from 0 to 10
+        
+      
+      
+        orientation
+        One of the possible values of the Orientation enumeration.
+        
+      
+      
+        script
+        A string value. The control's script source code.
+        
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        touch
+        A boolean value. true if any pointers are associated with the control in the current frame,
+          false otherwise. For a control to be able to be associated with a pointer, its visible
+          and interactive properties have to both be true
+      
+    
+  
+
+ 
+
+BOX 
+Properties
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        shape
+        One of the possible values of the Shape enumeration
+      
+    
+  
+
+ 
+
+BUTTON 
+Properties
+
+  
+    
+      
+        Name
+        Type
+      
+    
+    
+      
+        shape
+        One of the possible values of the Shape enumeration.
+      
+      
+        buttonType
+        One of the possible values of the ButtonType enumeration.
+      
+      
+        press
+        A boolean value.
+      
+      
+        release
+        A boolean value.
+      
+      
+        valuePosition
+        A boolean value.
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        x
+        A floating point value ranging from 0.0 to 1.0.
+      
+    
+  
+
+ 
+
+LABEL 
+Properties
+
+  
+    
+      
+        Name
+        Type
+        Since
+      
+    
+    
+      
+        font
+        One of the possible values of the Font enumeration.
+        1.0.4.106
+      
+      
+        textSize
+        An integer value.
+        
+      
+      
+        textLength
+        An integer value.
+        
+      
+      
+        textAlignH
+        One of the possible values of the AlignH enumeration.
+        
+      
+      
+        textAlignV
+        One of the possible values of the AlignV enumeration.
+        
+      
+      
+        textColor
+        A Color object.
+        
+      
+      
+        textClip
+        A boolean value.
+        
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        text
+        A string value.
+      
+    
+  
+
+ 
+
+TEXT 
+Properties
+
+  
+    
+      
+        Name
+        Type
+        Since
+      
+    
+    
+      
+        font
+        One of the possible values of the Font enumeration.
+        1.0.4.106
+      
+      
+        textSize
+        An integer value.
+        
+      
+      
+        textAlignH
+        One of the possible values of the AlignH enumeration.
+        1.0.4.106
+      
+      
+        textAlignV
+        One of the possible values of the AlignV enumeration.
+        1.2.1.171
+      
+      
+        textColor
+        A Color object.
+        
+      
+      
+        textClip
+        A boolean value.
+        1.2.1.171
+      
+      
+        textWrap
+        A boolean value.
+        1.2.1.171
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        text
+        A string value.
+      
+    
+  
+
+ 
+
+FADER 
+Properties
+
+  
+    
+      
+        Name
+        Type
+        Since
+      
+    
+    
+      
+        cursor
+        A boolean value.
+        
+      
+      
+        cursorDisplay
+        One of the possible values of the CursorDisplay enumeration.
+        
+      
+      
+        bar
+        A boolean value.
+        
+      
+      
+        barDisplay
+        One of the possible values of the CursorDisplay enumeration.
+        
+      
+      
+        centered
+        A boolean value.
+        
+      
+      
+        response
+        One of the possible values of the Response enumeration.
+        
+      
+      
+        responseFactor
+        An integer value ranging from 1 to 100.
+        
+      
+      
+        grid
+        A boolean value.
+        
+      
+      
+        gridSteps
+        An integer value.
+        
+      
+      
+        gridColor
+        A Color object.
+        1.2.0.166
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        x
+        A floating point value ranging from 0.0 to 1.0.
+      
+    
+  
+
+ 
+
+XY 
+Properties
+
+  
+    
+      
+        Name
+        Type
+        Since
+      
+    
+    
+      
+        cursor
+        A boolean value.
+        
+      
+      
+        cursorDisplay
+        One of the possible values of the CursorDisplay enumeration.
+        
+      
+      
+        lines
+        A boolean value.
+        
+      
+      
+        linesDisplay
+        One of the possible values of the CursorDisplay enumeration.
+        
+      
+      
+        lockX
+        A boolean value.
+        
+      
+      
+        lockY
+        A boolean value.
+        
+      
+      
+        response
+        One of the possible values of the Response enumeration.
+        
+      
+      
+        responseFactor
+        An integer value ranging from 1 to 100.
+        
+      
+      
+        gridX
+        A boolean value.
+        
+      
+      
+        gridY
+        A boolean value.
+        
+      
+      
+        gridStepsX
+        An integer value.
+        
+      
+      
+        gridStepsY
+        An integer value.
+        
+      
+      
+        gridColor
+        A Color object.
+        1.2.0.166
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        x
+        A floating point value ranging from 0.0 to 1.0.
+      
+      
+        y
+        A floating point value ranging from 0.0 to 1.0.
+      
+    
+  
+
+ 
+
+RADIAL 
+Properties
+
+  
+    
+      
+        Name
+        Type
+        Since
+      
+    
+    
+      
+        inverted
+        A boolean value.
+        
+      
+      
+        centered
+        A boolean value.
+        
+      
+      
+        response
+        One of the possible values of the Response enumeration.
+        
+      
+      
+        responseFactor
+        An integer value ranging from 1 to 100.
+        
+      
+      
+        grid
+        A boolean value.
+        
+      
+      
+        gridSteps
+        An integer value.
+        
+      
+      
+        gridColor
+        A Color object.
+        1.2.0.166
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        x
+        A floating point value ranging from 0.0 to 1.0.
+      
+    
+  
+
+ 
+
+ENCODER 
+Properties
+
+  
+    
+      
+        Name
+        Type
+        Since
+      
+    
+    
+      
+        cursor
+        A boolean value.
+        
+      
+      
+        cursorDisplay
+        One of the possible values of the CursorDisplay enumeration.
+        
+      
+      
+        response
+        One of the possible values of the Response enumeration.
+        
+      
+      
+        responseFactor
+        An integer value ranging from 1 to 100.
+        
+      
+      
+        grid
+        A boolean value.
+        
+      
+      
+        gridSteps
+        An integer value.
+        
+      
+      
+        gridColor
+        A Color object.
+        1.2.0.166
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        x
+        A floating point value ranging from 0.0 to 1.0.
+      
+      
+        y
+        A floating point value ranging from 0.0 to 1.0.
+      
+    
+  
+
+ 
+
+RADAR 
+Properties
+
+  
+    
+      
+        Name
+        Type
+        Since
+      
+    
+    
+      
+        cursor
+        A boolean value.
+        
+      
+      
+        cursorDisplay
+        One of the possible values of the CursorDisplay enumeration.
+        
+      
+      
+        lines
+        A boolean value.
+        
+      
+      
+        linesDisplay
+        One of the possible values of the CursorDisplay enumeration.
+        
+      
+      
+        lockX
+        A boolean value.
+        
+      
+      
+        lockY
+        A boolean value.
+        
+      
+      
+        gridX
+        A boolean value.
+        
+      
+      
+        gridY
+        A boolean value.
+        
+      
+      
+        gridStepsX
+        An integer value.
+        
+      
+      
+        gridStepsY
+        An integer value.
+        
+      
+      
+        gridColor
+        A Color object.
+        1.2.0.166
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        x
+        A floating point value ranging from 0.0 to 1.0.
+      
+      
+        y
+        A floating point value ranging from 0.0 to 1.0.
+      
+    
+  
+
+ 
+
+RADIO 
+Properties
+
+  
+    
+      
+        Name
+        Type
+      
+    
+    
+      
+        steps
+        An integer value.
+      
+      
+        radioType
+        One of the possible values of the RadioType enumeration.
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        x
+        An integer value ranging from 0 to the value of the steps property minus one.
+      
+    
+  
+
+ 
+
+PAGER 
+Properties
+
+  
+    
+      
+        Name
+        Type
+      
+    
+    
+      
+        tabbar
+        A boolean value.
+      
+      
+        tabbarSize
+        An integer value ranging from 10 to 300.
+      
+      
+        tabbarDoubleTap
+        A boolean value.
+      
+      
+        tabLabels
+        A boolean value.
+      
+      
+        textSizeOff
+        An integer value.
+      
+      
+        textSizeOn
+        An integer value.
+      
+    
+  
+
+Page Properties
+
+  
+    
+      
+        Name
+        Type
+      
+    
+    
+      
+        tabLabel
+        A string value.
+      
+      
+        tabColorOff
+        A Color object.
+      
+      
+        tabColorOn
+        A Color object.
+      
+      
+        textColorOff
+        A Color object.
+      
+      
+        textColorOn
+        A Color object.
+      
+    
+  
+
+Values
+
+  
+    
+      
+        Name
+        Description
+      
+    
+    
+      
+        page
+        An integer value ranging from 0 to the number of pages minus one.
+      
+    
+  
+
+ 
+
+              
+
+              
+
+              
+
+              
+                TouchOSC Manual
+              
+
+              Script · Examples
+
+              
+
+              
+                
+  
+• Control Callback Functions  
+• Sending MIDI Messages  
+• Sending OSC Messages  
+• Control "Double-tap"  
+• Send Periodic Message  
+• Send Accelerometer Data  
+• Snap Fader to Grid
+
+Control Callback Functions 
+
+The following script demonstrates all possible callback handlers during TouchOSC's processing of an application frame
+  and all associated events.
+
+As the root level of a document will always be called first if it defines any of the following callback functions
+  (except for the onReceiveNotify callback), when getting started with the scripting API, we recommend
+  setting this script at the root level, in order to see all possible events being handled and printed to the log view.
+
+function init()
+  print('init')
+end
+
+function update()
+  print('update')
+end
+
+function onPointer(pointers)
+  print('onPointer')
+  for i=1,#pointers do
+    local pointer = pointers[i]
+    print('\t', pointer.ID, pointer.x, pointer.y, pointer.state, pointer.created, pointer.modified)
+  end
+end
+
+function onValueChanged(key)
+  print('onValueChanged')
+  print('\t', key, '=', self.values[key])
+end
+
+function onReceiveMIDI(message, connections)
+  print('onReceiveMIDI')
+  print('\t message     =', table.unpack(message))
+  print('\t connections =', table.unpack(connections))
+end
+
+function onReceiveOSC(message, connections)
+  print('onReceiveOSC')
+  local path = message[1]
+  local arguments = message[2]
+  print('\t path        =', path)
+  for i=1,#arguments do
+    print('\t argument    =', arguments[i].tag, arguments[i].value)
+  end
+  print('\t connections =', table.unpack(connections))
+end
+
+function onReceiveGamepad(input, value, connections)
+  print('onReceiveGamepad')
+  print('\t input       =', input) -- one of the GamepadInput enumeration values
+  print('\t value       =', value)
+  print('\t connections =', table.unpack(connections))
+end
+
+function onReceiveNotify(key, value)
+  print('onReceiveNotify')
+  print('\t key   =', key)
+  print('\t value =', value)
+end
+
+ 
+
+Sending MIDI Messages 
+Send MIDI messages on one or multiple connections.
+For more information see the MIDI Messages script documentation.
+
+-- control change, controller 0, channel 1
+-- send on all configured connections
+sendMIDI({ 176, 0, 102 })
+sendMIDI({ MIDIMessageType.CONTROLCHANGE, 0, 102 })
+
+-- control change, controller 0, channel 2
+-- send on all configured connections
+sendMIDI({ 177, 0, 103 })
+sendMIDI({ MIDIMessageType.CONTROLCHANGE + 1, 0, 103 })
+
+-- control change, controller 2, channel 6
+-- send on all configured connections
+sendMIDI({ 181, 2, 104 })
+sendMIDI({ MIDIMessageType.CONTROLCHANGE + 5, 2, 104 })
+
+-- send only on connections 1 and 2
+sendMIDI({ MIDIMessageType.NOTE_ON, 12, 88 }, { true, true })
+sendMIDI({ MIDIMessageType.NOTE_OFF, 12, 0 }, { true, true })
+
+-- send only on connections 1 and 3
+sendMIDI({ MIDIMessageType.NOTE_ON, 13, 88 }, { true, false, true })
+sendMIDI({ MIDIMessageType.NOTE_OFF, 13, 0 }, { true, false, true })
+
+-- send only on connections 1 and 5
+sendMIDI({ MIDIMessageType.NOTE_ON, 14, 88 }, { true, false, false, false, true })
+sendMIDI({ MIDIMessageType.NOTE_OFF, 14, 0 }, { true, false, false, false, true })
+
+-- send system exlusive
+sendMIDI({ 0xF0, 0x00, 0x01, 0xF7 })
+sendMIDI({ MIDIMessageType.SYSTEMEXCLUSIVE, 0x00, 0x0D, 0xF7 })
+
+ 
+
+Sending OSC Messages 
+Send OSC messages on one or multiple connections.
+Messages can either be sent using a simple format, where TouchOSC will auto-convert parameter types, or using a
+  complex format, where each parameter type can be specified using OSC protocol type-tags.
+For more information see the Simple OSC Messages and Complex OSC Messages script documentation.
+
+-- -----------------------------------------
+-- Send simple OSC messages
+--
+-- arguments are auto-converted to
+-- boolean, float or string (not integer!)
+-- -----------------------------------------
+
+-- send on all configured connections
+sendOSC('/simple')
+sendOSC('/ping', 'pong')
+sendOSC('/on', true)
+sendOSC('/1/fader1', 0.5)
+sendOSC('/3/xy1', 0.25, 0.75)
+sendOSC('/mixedarguments', 'Hello', 1, true, 'World')
+
+-- send only on connections 1 and 2
+sendOSC('/1/fader1', 0.5, { true, true })
+
+-- send only on connections 1 and 3
+sendOSC('/3/xy1', 0.25, 0.75, { true, false, true })
+
+-- send only on connections 1 and 5
+sendOSC('/mixedarguments', 'Hello', 1, true, 'World', { true, false, false, false, true })
+
+-- -----------------------------------------
+-- Send complex OSC messages
+-- with argument type tags
+-- -----------------------------------------
+
+sendOSC(
+  -- message
+  {
+    -- path
+    '/complex',
+
+    -- argument list
+    {
+      { tag = 'T' },                                     -- true
+      { tag = 'F' },                                     -- false
+      { tag = 'N' },                                     -- nil
+      { tag = 'I' },                                     -- infinitum
+      { tag = 'i', value = 42 },                         -- int32
+      { tag = 'h', value = 1337 },                       -- int64
+      { tag = 'f', value = 3.14159 },                    -- float32
+      { tag = 'd', value = 3.14159265358979 },           -- double
+      { tag = 's', value = 'Goodbye Cruel World' },      -- string
+      { tag = 'b', value = { 0xC0, 0x00, 0x10, 0xFF } }  -- blob
+    }
+  },
+  -- connections
+  {
+    true, -- 1
+    true, -- 2
+    true, -- 3
+    true, -- 4
+    true, -- 5
+    true, -- 6
+    true, -- 7
+    true, -- 8
+    true, -- 9
+    true  -- 10
+  }
+)
+
+ 
+
+Control "Double-tap" 
+Detect a "double-tap" on a control, with a certain maximum time passing between the taps.
+
+local delay = 300 -- the maximum elapsed time between taps
+local last = 0
+
+function onValueChanged()
+  if(not self.values.touch) then
+    local now = getMillis()
+    if(now - last < delay) then
+      print('double tap!')
+      last = 0
+    else
+      last = now
+    end
+  end
+end
+
+ 
+
+Send a Periodic Message 
+Repeatedly send an OSC message, in this example once every second.
+
+local delay = 1000 -- every 1000ms = 1s
+local last = 0
+
+function update()
+  local now = getMillis()
+  if(now - last > delay) then
+    last = now
+    sendOSC('/ping')
+  end
+end
+
+ 
+
+Send Accelerometer Sensor Data 
+
+Read data from the host device's accelerometer sensor (if available) and send as OSC message.
+For more information see the documentation for the getAccelerometer utitlity
+  function.
+
+function update()
+  local values = getAccelerometer()
+  sendOSC('/accxyz', table.unpack(values))
+end
+
+ 
+
+Snap Fader to Grid 
+Snap a fader's values to the configured grid line interval. Works for any control with a value of type FLOAT and a
+  grid steps property.
+
+function onValueChanged(key)
+  if(key ~= 'touch') then
+    local steps = self.gridSteps - 1;
+    self.values[key] =
+      math.floor(steps * self.values[key] + .5) / steps
+  end
+end
+
+ 
+
+              
