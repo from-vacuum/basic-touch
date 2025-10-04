@@ -13,7 +13,8 @@ import struct
 class OSCManager:
     def __init__(self, parent):
         self.parent = parent
-        self.UDP_TCP = parent.comp.par.Udptcp
+        self.config = parent.config
+        self.UDP_TCP = self.config.use_udp_tcp
 
         self.tcp = op('../tcpip1')
         self.udp = op('../oscout2')
@@ -131,15 +132,16 @@ class OSCManager:
             self.parent.OnValueChange(par, None)  # This might trigger sendOSC internally, consider if delay is needed there too
 
             # Send color
-            self.sendOSC('/color_control', [control_type, control_index, *self.parent.color])
+            self.sendOSC('/color_control', [control_type, control_index, *self.config.color])
 
             self.parent.debug(
                 f"Created control {control_type}{control_index} for {par.name}")
             
-            if self.parent.sleep_time > 0: time.sleep(self.parent.sleep_time)
+            if self.config.sleep_time > 0:
+                time.sleep(self.config.sleep_time)
 
     def hideControls(self):
-        for control_type, count in self.parent.control_limits.items():
+        for control_type, count in self.config.control_limits.items():
             for i in range(1, count + 1):
                 self.sendOSC('/hide_control', [control_type, i])
 

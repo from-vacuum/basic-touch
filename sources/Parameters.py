@@ -10,6 +10,7 @@ Licence: CC0
 class ParameterManager:
     def __init__(self, parent):
         self.parent = parent
+        self.config = parent.config
         self.param_mappings = self.map_address() # name -> (index, address)
         self.params_dat = self.parent.params_dat
         self.osc_manager = self.parent.osc_manager
@@ -24,7 +25,7 @@ class ParameterManager:
     def delete_unsupported(self):
         rows_to_delete = []
         for row in range(1, self.params_dat.numRows):
-            if not self.params_dat[row, 'style'] or self.params_dat[row, 'style'].val.lower() not in self.parent.supported_styles:
+            if not self.params_dat[row, 'style'] or self.params_dat[row, 'style'].val.lower() not in self.config.supported_styles:
                 rows_to_delete.append(row)
                 self.parent.debug(f"Skipping parameter {self.params_dat[row, 'name'].val} with unsupported style")
         

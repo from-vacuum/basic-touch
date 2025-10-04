@@ -10,10 +10,13 @@ Licence: CC0
 class PresetManager:
     def __init__(self, parent):
         self.parent = parent
+        self.config = parent.config
         self.presets = op('../presets')
         self.presets.clear()
-        if parent.comp.par.Presetmanager:
-            self.tauceti_manager = op(parent.comp.par.Presetmanager)
+        self.tauceti_manager = None
+        self.preset_manager_path = self.config.preset_manager_path
+        if self.preset_manager_path:
+            self.tauceti_manager = op(self.preset_manager_path)
             self.presets = op('../presets')
             # Default grid settings
             self.preset_grid_cols = 2
@@ -21,7 +24,7 @@ class PresetManager:
             self.max_allowed_presets = 10
 
     def loadPresets(self):
-        if self.parent.comp.par.Presetmanager:
+        if self.preset_manager_path:
             self.presets.clear()
             if self.tauceti_manager and hasattr(self.tauceti_manager, 'PresetParMenuObject'):
                 # append each entry from MenuSource to the presets DAT
@@ -73,10 +76,10 @@ class PresetManager:
                     actual_rows = (num_presets + cols - 1) // cols
 
                 # Calculate item size based on available space
-                available_width = self.parent.doc_width - \
-                    (self.parent.padding * (actual_cols + 1))
-                available_height = self.parent.doc_height - \
-                    (self.parent.padding * (actual_rows + 1)) - \
+                available_width = self.config.doc_width - \
+                    (self.config.padding * (actual_cols + 1))
+                available_height = self.config.doc_height - \
+                    (self.config.padding * (actual_rows + 1)) - \
                     120  # bar and fade time fader
 
                 button_width = available_width / actual_cols
@@ -86,7 +89,7 @@ class PresetManager:
                 positions = self.parent.layout_manager.calculateGridPositions(
                     num_presets, actual_cols, actual_rows,
                     button_width, button_height,
-                    self.parent.padding
+                    self.config.padding
                 )
 
                 # Send OSC messages for each preset
@@ -96,7 +99,7 @@ class PresetManager:
                         preset_name = self.presets[row, 0].val
 
                         self.parent.osc_manager.sendOSC('/add_preset', [
-                            row+1, preset_name, x, y, width, height, *self.parent.color
+                            row+1, preset_name, x, y, width, height, *self.config.color
                         ])
 
                         self.debug(
@@ -107,7 +110,7 @@ class PresetManager:
                     fade_time = self.tauceti_manager.par.Interacttime.eval()
                     self.parent.osc_manager.sendOSC('/fadeTimeFader1', [fade_time])
                     self.parent.osc_manager.sendOSC(
-                        '/color_control', ['fadeTimeFader', 1, *self.parent.color])
+                        '/color_control', ['fadeTimeFader', 1, *self.config.color])
                     self.debug(f"Fade time set to {fade_time}")
             return
 

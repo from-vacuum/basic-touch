@@ -11,6 +11,7 @@ import random
 class RandomizeManager:
     def __init__(self, parent):
         self.parent = parent
+        self.config = parent.config
         self.random_amount = 0.5
         
         # Set up randomization options
@@ -94,11 +95,11 @@ class RandomizeManager:
         """
         cols = 2
         rows = 4
-        button_width = self.parent.doc_width - (self.parent.padding * 2)
-        button_height = (self.parent.doc_height - (self.parent.padding * 2))
-        
-        available_width = self.parent.doc_width - (self.parent.padding * (cols+1)) - 80  # amount fader
-        available_height = self.parent.doc_height - (self.parent.padding * (rows+1)) - 40  # bar
+        button_width = self.config.doc_width - (self.config.padding * 2)
+        button_height = (self.config.doc_height - (self.config.padding * 2))
+
+        available_width = self.config.doc_width - (self.config.padding * (cols+1)) - 80  # amount fader
+        available_height = self.config.doc_height - (self.config.padding * (rows+1)) - 40  # bar
             
         button_width = available_width / cols
         button_height = available_height / rows
@@ -106,7 +107,7 @@ class RandomizeManager:
         positions = self.parent.layout_manager.calculateGridPositions(
             cols*rows, cols, rows, 
             button_width, button_height, 
-            self.parent.padding
+            self.config.padding
         )
 
         # iterate through buttons and send OSC messages
@@ -114,16 +115,16 @@ class RandomizeManager:
             if i < len(positions):
                 x, y, width, height = positions[i]
                 self.parent.osc_manager.sendOSC('/add_random', [
-                    i+1, button, x, y, width, height, *self.parent.color
+                    i+1, button, x, y, width, height, *self.config.color
                 ])
                 self.parent.debug(f"Added random button {button} to OSC at position ({x}, {y})")
         
         # Add randomization amount slider
         self.parent.osc_manager.sendOSC('/modify_control', [
             'RandomAmount', 1, 
-            self.parent.doc_width-70, 0, 
-            50, self.parent.doc_height-80, 
+            self.config.doc_width-70, 0, 
+            50, self.config.doc_height-80, 
             'constant'
         ])
         self.parent.osc_manager.sendOSC('/Randomize/RandomAmount1', [self.random_amount])
-        self.parent.osc_manager.sendOSC('/color_control', ['RandomAmount', 1, *self.parent.color])
+        self.parent.osc_manager.sendOSC('/color_control', ['RandomAmount', 1, *self.config.color])

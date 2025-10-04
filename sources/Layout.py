@@ -10,6 +10,7 @@ Licence: CC0
 class Layout:
     def __init__(self, parent):
         self.parent = parent
+        self.config = parent.config
         self.dat = self.parent.params_dat
         
         for col in ['control_type', 'control_index', 'address',
@@ -32,7 +33,7 @@ class Layout:
                 continue
             
             index = self._next_index(control_type, group_state, control_indices)
-            if index > self.parent.control_limits.get(control_type, 0):
+            if index > self.config.control_limits.get(control_type, 0):
                 self.parent.showWarningDialog(f"Ran out of control for type [{control_type}]")
                 self.removeParamRows(row)
                 continue
@@ -96,7 +97,7 @@ class Layout:
 
     def calculateControlPositions(self):
         """Calculate positions for all controls based on their types"""
-        y = self.parent.padding
+        y = self.config.padding
         
         row = 1
         while row < self.dat.numRows:
@@ -105,7 +106,7 @@ class Layout:
                 row += 1
                 continue
             
-            x = self.parent.padding
+            x = self.config.padding
 
             # Handle different control types with dedicated functions
             if control_type == 'button':
@@ -122,7 +123,7 @@ class Layout:
                 row, y = self.position_standard_control(row, x, y)
 
             # Check if we're running out of vertical space
-            if y > self.parent.doc_height-self.parent.tab_bar_height:
+            if y > self.config.doc_height - self.config.tab_bar_height:
                 self.parent.showWarningDialog(
                     f"Too many parameters for this document size.\nThe rest will be skipped.",
                     f"Too many parameters: {row}:{self.dat.numRows} {y} {self.control_height()}"
@@ -146,32 +147,32 @@ class Layout:
                 break
         
         # Calculate width for each button
-        available_width = self.parent.doc_width - (self.parent.padding * (button_count + 1))
+        available_width = self.config.doc_width - (self.config.padding * (button_count + 1))
         button_width = available_width / button_count
         button_height = self.control_height()
         
         # Position each button
         for i, btn_row in enumerate(button_rows):
-            btn_x = self.parent.padding + i * (button_width + self.parent.padding)
-            
+            btn_x = self.config.padding + i * (button_width + self.config.padding)
+
             self.dat[btn_row, 'x'] = btn_x
             self.dat[btn_row, 'y'] = y
             self.dat[btn_row, 'width'] = button_width
             self.dat[btn_row, 'height'] = button_height
-        
+
         # Move to next row and return updated position
         next_row = button_rows[-1] + 1
-        next_y = y + button_height + self.parent.padding
+        next_y = y + button_height + self.config.padding
         return next_row, next_y
 
     def position_xy_control(self, row, x, y):
         """Position XY control and handle its components"""
-        control_height = self.parent.doc_width/2 - self.parent.padding*2
+        control_height = self.config.doc_width/2 - self.config.padding*2
         control_width = control_height
         
         # If previous control is also XY, join into one row
         if row > 2 and self.dat[row-1, 'control_type'].val == 'xy':
-            x = float(self.dat[row-1, 'x'].val) + control_width + self.parent.padding
+            x = float(self.dat[row-1, 'x'].val) + control_width + self.config.padding
             y = float(self.dat[row-1, 'y'].val)
         
         self.dat[row, 'x'] = x
@@ -196,7 +197,7 @@ class Layout:
         else:
             next_row = row + 1
         
-        next_y = y + control_height + self.parent.padding
+        next_y = y + control_height + self.config.padding
         return next_row, x, next_y
 
     def position_color_control(self, row, x, y):
@@ -232,7 +233,7 @@ class Layout:
             else:
                 next_row = row + 2
         
-        next_y = y + control_height + self.parent.padding
+        next_y = y + control_height + self.config.padding
         return next_row, next_y
 
     def position_standard_control(self, row, x, y):
@@ -243,7 +244,7 @@ class Layout:
         self.dat[row, 'height'] = self.control_height()
         
         next_row = row + 1
-        next_y = y + self.control_height() + self.parent.padding
+        next_y = y + self.control_height() + self.config.padding
         return next_row, next_y
     
     def removeParamRows(self, start_row):
@@ -269,17 +270,17 @@ class Layout:
         return positions
     
     def control_height(self):
-        if not hasattr(self.parent, 'scale_height') or not self.parent.scale_height:
-            return self.parent.min_control_height
+        if not getattr(self.config, 'scale_controls_height', 0):
+            return self.config.min_control_height
         else:
             # Calculate scaled height with minimum of self.min_control_height
             num_controls = sum(1 for row in range(1, self.dat.numRows)
                              if self.dat[row, 'control_type'].val)
             if not num_controls:
-                return self.parent.min_control_height
-                
-            scaled_height = (self.parent.doc_height - (self.parent.padding * (num_controls + 1))) // num_controls
-            return max(self.parent.min_control_height, scaled_height)
+                return self.config.min_control_height
+
+            scaled_height = (self.config.doc_height - (self.config.padding * (num_controls + 1))) // num_controls
+            return max(self.config.min_control_height, scaled_height)
 
     def control_width(self):
-        return self.parent.doc_width - (self.parent.padding * 2)
+        return self.config.doc_width - (self.config.padding * 2)
