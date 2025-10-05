@@ -10,18 +10,12 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Union
 
 class BasicTouch:
-    def __init__(self, comp):
-        self.comp = comp
-        self.config = BasicTouchConfig.from_comp(comp)
-        self.base_comp: Par = op(self.config.base_comp_path) if self.config.base_comp_path else None
-
-        if self.base_comp is None:
-            self.debug('Base component not found. Check Base parameter path.')
-
+    def __init__(self, comp: COMP):
+        self.config: BasicTouchConfig = BasicTouchConfig.from_comp(comp)
         self.debug('Init BasicTouch...')
+        self.base_comp: Optional[OPShortcut] = op(self.config.base_comp_path) if self.config.base_comp_path else None
 
-        # Core components
-        self.params_dat = op('param_control')
+        self.params_dat: tableDAT = op('param_control')
 
         # Load modules 
         self.layout_manager = op('modules/Layout').module.Layout(self)
@@ -71,7 +65,7 @@ class BasicTouch:
         return self.parameter_manager.OnModeChange(par, prev)
 
     def OnEnableChange(self, par, val, prev):
-        return self.parameter_manager.OnEnableChange(par, val, prev)    
+        return self.parameter_manager.OnModeChange(par, prev)    
 
 # ---------------------------------------------------------
 # Helper functions
@@ -106,7 +100,7 @@ class BasicTouchConfig:
     debug_log: bool
 
     @classmethod
-    def from_comp(cls, comp) -> "BasicTouchConfig":
+    def from_comp(cls, comp: COMP) -> "BasicTouchConfig":
         """Build a configuration snapshot from the component's parameters."""
         def fetch(name: str):
             return _eval_par_value(getattr(comp.par, name, None))
