@@ -24,14 +24,11 @@ class OSCManager:
     def sendOSC(self, address, args):
        if not self.UDP_TCP:
            self.parent.debug(f"sendOSC_UDP called: {address} {args}")
-           self.sendOSC_UDP(address, args)
+           self.udp.sendOSC(address, args)
        else:
            self.parent.debug(f"sendOSC_TCP called: {address} {args}")
            self.sendOSC_TCP(address, args)        
     
-    def sendOSC_UDP(self, address, args):
-        self.udp.sendOSC(address, args)
-
     def sendOSC_TCP(self, address, args):
         """Build an OSC packet, SLIP-encode it (OSC 1.1 over TCP), and send via TCP/IP DAT.
 

@@ -7,6 +7,8 @@ Created by: @from.vacuum aka Serhiy P.
 Licence: CC0
 """
 
+from typing import Tuple
+
 class ParameterManager:
     def __init__(self, parent):
         self.parent = parent
@@ -32,13 +34,12 @@ class ParameterManager:
         for row in sorted(rows_to_delete, reverse=True):
             self.params_dat.deleteRow(row)
         
-    def map_address(self) -> dict:
+    def map_address(self) -> dict[str, Tuple[int, str]]:
         param_mappings = {}
         for row in range(1, self.parent.params_dat.numRows):
             name = self.parent.params_dat[row, 'name'].val
             param_mappings[name] = (row, self.parent.params_dat[row, 'address'].val)
         return param_mappings
-        
 
         
     def OnValueChange(self, par, prev):

@@ -1,8 +1,11 @@
 # BasicTouch
 
 Want to play your visuals like an instrument, rather than jerking one parameter at a time with a mouse?
+
 Want to explore your patches parameter space with a tactile, expressive control surface?
-Want to walk around the room and tweak your visuals from anywhere on the touch surface of your choice?
+
+Want to walk around the room and tweak any parameter from anywhere on the touch surface of your choice?
+
 Tired of building and rebuilding custom UI layouts for every new TouchDesigner project?
 
 
@@ -17,23 +20,16 @@ With curated randomization and optional connection to TauCeti preset system.
 
 ## Why It’s Awesome
 
-- **Auto layout**: scans any COMP’s parameters, classifies them (faders, buttons, XY pads, RGB grouped triples) and positions controls on the TouchOSC document for you.
+- **Auto layout**: positions controls on the TouchOSC document for you.
 - **Live round-trip**: every tweak in TouchDesigner pushes values, colors, and modes to the controller; any performance wiggles from TouchOSC land straight back into your parameters.
-- **Randomize rig**: eight curated chaos buttons plus a random-amount fader for dialing in just enough entropy.
+- **Randomize it**: eight chaos buttons plus a random-amount fader for dialing in just enough entropy.
 - **Preset launcher**: mirrors external preset manager(Tau Ceti), lays out up to 10 preset buttons, and syncs fade time.
 - **UDP/TCP agnostic**: flip one toggle to switch between traditional UDP fire-and-forget or reliable TCP for wireless connections.
-
-## Quickstart in 5 Steps
-1. **Drop the component**: place `/BasicTouch` inside your TouchDesigner project and point the `Base` parameter at the COMP whose parameters you want to control.
-2. **Check network**: in the `Network` page, confirm IP/ports. Local testing defaults to `127.0.0.1`, `7000` out, `7003` in.
-3. **Deploy TouchOSC**: open the bundled `BasicTouch.tosc` layout and point it back at TouchDesigner with matching ports.
-4. **Pulse Setup Controls** in TD: fires the OSC boot sequence—layouts, colors, preset grid, randomize buttons, everything.
-5. **Jam**: move anything—faders, toggles, XY, menus—on either side and watch the other side mirror it.
 
 
 ## How to Install and setup:
 
-1. Drag `BasicTouch` into TouchDesigner
+1. Drag `BasicTouch.tox` into TouchDesigner
 2. Set `Target Base` by dragging your target Base COMP
 3. Set Ports and IPs
 	1. `Local IP` is where TouchDesigner running
@@ -45,13 +41,25 @@ With curated randomization and optional connection to TauCeti preset system.
 	2. Switch to **Control Surface View** by pressing triangle icon 
 	3. "Waiting for connection...." appears
 5. Press "Setup Controls" on the Config page to send controls info to TouchOSC
-6. Enjoy dynamic bidirectional Control Surface UI
+6. Jam on dynamic bidirectional control surface UI
 
+To control another Base COMP, just change `Target Base` and press "Setup Controls" again.
 
+## TauCeti Support
+ * [TauCeti PresetSystem](https://github.com/PlusPlusOneGmbH/TD_TauCeti_Presetsystem) - "Highly customisable and setup agnostic system for presets management
+* Point to your TauCeti Preset Manager COMP in `Preset Manager` parameter, and BasicTouch will:
+	* Auto populate preset buttons with names from TauCeti Preset Manager
+	* Sync preset changes from TouchOSC to TauCeti Preset Manager and vice versa
+	* Sync fade time parameter to TauCeti Preset Manager's fade time parameter
+* Up to 10 preset buttons supported
+* Fade time control with maximum set to 10s
 
-## Tau Ceti Support
-* max_allowed_presets = 10
-* Fade time max is 10s
+## Randomization
+* 8 Randomize buttons to randomize different sets of parameters
+	- 4 buttons to randomize all parameters by 1/5/30/100 %
+	- 4 buttons to randomize given parameter types: Fader/Button/Menu/XY(Z) to the amount set by Random Amount fader on the right
+
+* Randomization respects parameter types and ranges, and will not change parameters that are disabled or have expressions
 
 ## Important:
 
@@ -74,25 +82,31 @@ With curated randomization and optional connection to TauCeti preset system.
 
 ## Limitations
 
- 'label': 24,
+### Layout
+Layout of the document is vertical with single column, we may add more layout options in the future.
 
-            'fader': 16,
+### Control Limits
+ TouchOSC cannot create new controls, so we reuse pre-made controls. This puts some limits on how many parameters BasicTouch can handle per document size.
+ Here are the current limits:
+ 
+ * Fader: 16
+ * Button: 16
+ * Color: 3
+ * Menu: 4
+ * XY: 4
 
-            'button': 16,
+Supported Parameter Styles:
 
-            'color': 3,
+* `float`
+* `int`
+* `pulse`
+* `toggle`
+* `momentary`
+* `rgb`
+* `menu`
+* `strmenu`
+* `xy`
+* `xyz`
+* `xyzw`
 
-            'radio': 4,
-
-            'xy': 4,
-
-            'plabel': 10,
-
-            'pbutton': 10
-
-supported_styles = ['float', 'int', 'pulse', 'toggle', 'momentary', 'rgb', 'menu', 'strmenu', 'xy', 'xyz', 'xyzw']
-
-- Layout is vertical with single column
-- 
-
-
+Any parameters beyond these limits will be ignored.

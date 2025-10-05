@@ -42,10 +42,16 @@ class Layout:
         return
 
     def _classify_control_type(self, row: int, style: str, size: str = "") -> str:
-        if style in ('float', 'int'):
+        if style in ('float', 'int', 'xy', 'xyzw'):
             if size == "1":
                 return 'fader'
             if size == "2":
+                return 'xy'
+            if size == "3":
+                prev_label = self.dat[row-2, 'label'].val if row > 2 else None
+                label = self.dat[row, 'label'].val
+                if prev_label == label:
+                    return 'fader'
                 return 'xy'
             return ''
         if style in ('pulse', 'toggle', 'momentary'):
@@ -54,12 +60,12 @@ class Layout:
             return 'color'
         if style in ('menu', 'strmenu'):
             return 'radio'
-        if style in ('xy', 'xyzw'):
-            # Special-case: when two rows above is 'xyzw', treat current as fader
-            prev2 = self.dat[row-2, 'style'] if row > 2 else None
-            if prev2 and prev2.val.lower() == 'xyzw' and size == "3":
-                return 'fader'
-            return 'xy'
+        # if style in ('xy', 'xyzw'):
+        #     # # Special-case: when two rows above is 'xyzw', treat current as fader
+        #     # prev2 = self.dat[row-2, 'style'] if row > 2 else None
+        #     # if prev2 and prev2.val.lower() == 'xyzw' and size == "3":
+        #     #     return 'fader'
+        #     return 'xy'
         return ''
 
     def _next_index(self, control_type: str, group_state: dict, control_indices: dict) -> int:
