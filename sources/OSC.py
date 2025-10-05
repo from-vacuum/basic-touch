@@ -8,6 +8,7 @@ Licence: CC0
 """
 import time
 import struct
+from typing import List
 
 
 class OSCManager:
@@ -104,6 +105,8 @@ class OSCManager:
             if x == '':  # Skip if position is not set
                 continue
 
+            
+
             # Send control configuration
             self.sendOSC('/modify_control', [
                 control_type,
@@ -111,7 +114,7 @@ class OSCManager:
                 x, y,
                 width, height,
                 mode,
-                par.menuLabels if par.isMenu else []
+                self.menu_labels(par)
             ])
             
             if control_type != 'radio':
@@ -140,6 +143,25 @@ class OSCManager:
             if self.config.sleep_time > 0:
                 time.sleep(self.config.sleep_time)
 
+    def menu_labels(self, par) -> List[str]:  
+        # For menus, send up to first 20 labels (TouchOSC limit)
+        # Limit to first N chars of each label if needed
+        if not par.isMenu:
+            return []
+        else:
+            menuLabelLimit = self.menu_label_limit(par)
+            if menuLabelLimit is not None:
+                return [label[:menuLabelLimit] for label in par.menuLabels[:20]]
+            return par.menuLabels[:20]
+
+    def menu_label_limit(self, par):
+        count = len(par.menuLabels)
+        for threshold, limit in ((15, 3), (11, 4), (8, 5)):
+            if count >= threshold:
+                return limit
+        return None
+
+        
     def hideControls(self):
         for control_type, count in self.config.control_limits.items():
             for i in range(1, count + 1):
