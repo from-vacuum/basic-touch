@@ -31,7 +31,7 @@ With curated randomization and optional connection to TauCeti preset system.
 5. **Jam**: move anything—faders, toggles, XY, menus—on either side and watch the other side mirror it.
 
 
-How to Install and setup:
+## How to Install and setup:
 
 1. Drag `BasicTouch` into TouchDesigner
 2. Set `Target Base` by dragging your target Base COMP
@@ -41,7 +41,7 @@ How to Install and setup:
 4. Open TouchOSC `BasicTouch.Beta.tosc` template on control surface device.
 	1. Edit -> Connections, on OSC tab, make sure IPs and Ports are aligned with step 3. 
 		1. `Send Port` = `OUT Port`
-		2. `Recieve Port` = `IN Port`
+		2. `Receive Port` = `IN Port`
 	2. Switch to **Control Surface View** by pressing triangle icon 
 	3. "Waiting for connection...." appears
 5. Press "Setup Controls" on the Config page to send controls info to TouchOSC
@@ -57,12 +57,19 @@ How to Install and setup:
 
 * Make sure to set correct range max and range min for parameters for correct scaling
 * Parameters that have expressions will be displayed in `read-only` mode - no ability to change value, slow fade in/out
-* Template Resolution **need** to be the same as TouchOSCs Document `Width` and `Height` in case you changed one, update the other.  TouchOSC does not allow to change those dynamically.
+* Template Resolution **needs** to be the same as TouchOSC's Document `Width` and `Height`; if you change one, update the other. TouchOSC does not allow you to change those dynamically.
 * When you switch `Target Base` or change any of its Parameter config/names, just "Setup Controls" again to update TouchOSC template.
 * If something breaks, restart BasicTouch by disabling/enabling cooking via `X`
 	* "Toggle Log" in TouchOSC to see incoming OSC messages and troubleshoot connection.
  * TouchDesigner only work with OSC via UDP out of the box. BasicTouch supports TCP via custom script that have bugs, this feature is experimental. Use UDP over the wire if you can.
  *  Flip `Debug Log` on the components "About" page if you face any issues, and check Textport for errors.
+
+## FAQ
+
+- **I am getting "Too many parameters for this document size"?**
+   - Your target Base COMP has more parameters than BasicTouch can handle with current TouchOSC document size.
+   - You can either reduce the number of parameters in your target Base COMP, or increase the TouchOSC document size or decrease "Minimum control height" in BasicTouch "Appearance" page.
+   - If you have a bunch of Button/Pulse/XY parameters, consider grouping them together so they can share one row and save space. 
 
 
 ## Limitations

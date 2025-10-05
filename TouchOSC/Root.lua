@@ -38,7 +38,6 @@ function onReceiveOSC(message, connections)
     local control = self:findByName(controlName, true)
     
     if control then
-        --self.children.WelcomeScreen.visible = false
         if path == "/modify_control" then
 
             local x = tonumber(arguments[3].value) or 0
@@ -79,7 +78,6 @@ function onReceiveOSC(message, connections)
 
         if path == "/hide_control" then
            control.visible = false
-         --print(string.format("Hiden %s control", controlName))
         end
         
     else
