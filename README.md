@@ -13,6 +13,19 @@
 🎲 With curated randomization and optional connection to TauCeti preset system.
 🔟 10 touchpoints can control up to 20 parameters at the same time.
 
+<table>
+  <tr>
+    <td><img src="img/Preview_1.png" alt="BasicTouch Preview" width="420"/></td>
+    <td><img src="img/Preview_4.png" alt="BasicTouch Preview 2" width="420"/></td>
+  </tr>
+    <tr>
+    <td><img src="img/Preview_2.png" alt="BasicTouch Preview" width="420"/></td>
+    <td><img src="img/Preview_3.png" alt="BasicTouch Preview 2" width="420"/></td>
+  </tr>
+</table>
+
+
+
 ## 🧰 What You Need
 - 🧠 **TouchDesigner** 2023.1+ (tested on 2025.30960)
 - 📱 **TouchOSC** desktop or mobile

@@ -136,7 +136,8 @@ class BasicTouchConfig:
             },
             supported_styles=[
                 "float", "int", "pulse", "toggle", "momentary",
-                "rgb", "rgba", "menu", "strmenu", "xy", "xyz", "xyzw",
+                "rgb", "rgba", "menu", "xy", "xyz", "xyzw",
+                # "strmenu"
             ],
         )
 
