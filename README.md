@@ -117,9 +117,6 @@ Here are the current limits:
 - ⏱️ `momentary`
 - 🌈 `rgb`
 - 📋 `menu`
-- 🧾 `strmenu`
-- 🧭 `xy`
-- 🧮 `xyz`
-- 🧊 `xyzw`
+- 🧭 `xy(zw)`
 
 🚫 Any parameters beyond these limits will be ignored.
