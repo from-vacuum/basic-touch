@@ -10,8 +10,10 @@
 
 
 ✨ BasicTouch is a dynamic OSC controller for TouchDesigner and TouchOSC that auto-generates a custom layout for any COMP’s parameters, syncs values both ways in real time.
+
 🎲 With curated randomization and optional connection to TauCeti preset system.
-🔟 10 touchpoints can control up to 20 parameters at the same time.
+
+🔟 Touchpoints can control up to 20 parameters at the same time.
 
 <table>
   <tr>
@@ -48,7 +50,7 @@
 	1. 🖥️ `Local IP` is where TouchDesigner running
 	2. 📱 `Device IP` is where TouchOSC running
 4. 📲 Open TouchOSC `BasicTouch.Beta.tosc` template on control surface device.
-	1. 🧭 Edit -> Connections, on OSC tab, make sure IPs and Ports are aligned with step 3. 
+	1. Edit -> Connections, on OSC tab, make sure IPs and Ports are aligned with step 3. 
 		1. 📤 `Send Port` = `OUT Port`
 		2. 📥 `Receive Port` = `IN Port`
 	2. 🔺 Switch to **Control Surface View** by pressing triangle icon 
