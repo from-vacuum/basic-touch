@@ -1,4 +1,6 @@
-# 🎛️ BasicTouch
+# 🎛️ BasicTouch  - ✨DYNAMIC TOUCHOSC CONTROLLER THAT AUTO-GENERATES A TOUCH SURFACE UI FOR ANY TOX
+
+
 
 🎹 Want to play your visuals like an instrument, rather than jerking one parameter at a time with a mouse?
 
@@ -9,7 +11,7 @@
 🧱 Tired of building and rebuilding custom UI layouts for every new TouchDesigner project?
 
 
-✨ BasicTouch is a dynamic OSC controller for TouchDesigner and TouchOSC that auto-generates a custom layout for any COMP’s parameters, syncs values both ways in real time.
+
 
 🎲 With curated randomization and optional connection to TauCeti preset system.
 
