@@ -13,7 +13,7 @@
 
 
 
-🎲 With curated randomization and optional connection to TauCeti preset system.
+🎲 With curated randomization and optional connection to any preset system.
 
 🔟 Touchpoints can control up to 20 parameters at the same time.
 
@@ -40,7 +40,7 @@
 - 🧭 **Auto layout**: positions controls on the TouchOSC document for you.
 - 🔄 **Live round-trip**: every tweak in TouchDesigner pushes values, colors, and modes to the controller; any performance wiggles from TouchOSC land straight back into your parameters.
 - 🎲 **Randomize it**: eight chaos buttons plus a random-amount fader for dialing in just enough entropy.
-- 🚀 **Preset launcher**: mirrors external preset manager(Tau Ceti), lays out up to 10 preset buttons, and syncs fade time.
+- 🚀 **Preset launcher**: mirrors any external preset system via a callbacks DAT, lays out up to 10 preset buttons, and syncs fade time.
 - 📡 **UDP/TCP agnostic**: flip one toggle to switch between traditional UDP fire-and-forget or reliable TCP for wireless connections.
 
 
@@ -62,14 +62,34 @@
 
 🔁 To control another Base COMP, just change `Target Base` and press "Setup Controls" again.
 
-## 🚀 TauCeti Support
- * 🛰️ [TauCeti PresetSystem](https://github.com/PlusPlusOneGmbH/TD_TauCeti_Presetsystem) - "Highly customisable and setup agnostic system for presets management
-* 🎯 Point to your TauCeti Preset Manager COMP in `Preset Manager` parameter, and BasicTouch will:
-	* 🧾 Auto populate preset buttons with names from TauCeti Preset Manager
-	* 🔁 Sync preset changes from TouchOSC to TauCeti Preset Manager and vice versa
-	* ⏱️ Sync fade time parameter to TauCeti Preset Manager's fade time parameter
+## 🚀 Preset Support
+* 🎯 Point `Presets Callbacks` to a DAT (e.g. a Script/Text DAT) that implements two methods, and BasicTouch will:
+	* 🧾 Auto populate preset buttons with names returned by `readPresets()`
+	* 🔁 Recall a preset via `recall_preset(name, fade_time)` when a preset button is pressed in TouchOSC
 * 🔟 Up to 10 preset buttons supported
-* 🕙 Fade time control with maximum set to 10s
+* 🕙 Fade time control with maximum set to 10s - the fader value (in seconds) is passed as `fade_time`
+
+```python
+def readPresets():
+	"""Return a list of preset names to display."""
+	return [entry for entry in op('/my/presets').module.names()]
+
+def recall_preset(name, fade_time):
+	"""Recall preset `name` over `fade_time` seconds."""
+	op('/my/presets').Recall_Preset(name, fade_time)
+```
+
+Any preset system can be wired up this way - for example [TauCeti PresetSystem](https://github.com/PlusPlusOneGmbH/TD_TauCeti_Presetsystem):
+
+```python
+manager = op('/project1/PresetManager')
+
+def readPresets():
+	return list(manager.PresetParMenuObject.menuNames)
+
+def recall_preset(name, fade_time):
+	manager.Recall_Preset(name, fade_time)
+```
 
 ## 🎲 Randomization
 *  8 Randomize buttons to randomize different sets of parameters

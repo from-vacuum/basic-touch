@@ -22,7 +22,7 @@ class BasicTouch:
         self.osc_manager = op('modules/OSC').module.OSCManager(self)
         self.parameter_manager = op('modules/Parameters').module.ParameterManager(self)
 
-        if self.config.preset_manager_path:
+        if self.config.presets_callbacks:
             self.preset_manager = op('modules/Presets').module.PresetManager(self)
         else:
             self.preset_manager = None
@@ -95,7 +95,7 @@ class BasicTouchConfig:
     control_limits: Dict[str, int]
     supported_styles: List[str]
     color: Tuple[float, float, float]
-    preset_manager_path: Optional[str]
+    presets_callbacks: Optional[str]
     use_udp_tcp: bool
     debug_log: bool
 
@@ -105,10 +105,10 @@ class BasicTouchConfig:
         def fetch(name: str):
             return _eval_par_value(getattr(comp.par, name, None))
 
-        preset_manager_raw = fetch("Presetmanager")
-        preset_manager_path = (
-            preset_manager_raw.strip()
-            if isinstance(preset_manager_raw, str) and preset_manager_raw
+        presets_callbacks_raw = fetch("Presetscallbacks")
+        presets_callbacks = (
+            presets_callbacks_raw.strip()
+            if isinstance(presets_callbacks_raw, str) and presets_callbacks_raw
             else None
         )
 
@@ -121,7 +121,7 @@ class BasicTouchConfig:
             min_control_height=float(fetch("Mincontrolheight")),
             use_udp_tcp=bool(fetch("Udptcp")),
             debug_log=bool(fetch("Debuglog")),
-            preset_manager_path=preset_manager_path,
+            presets_callbacks=presets_callbacks,
             color=[
                 comp.par.Colorr.parGroup[0].eval(),
                 comp.par.Colorr.parGroup[1].eval(),

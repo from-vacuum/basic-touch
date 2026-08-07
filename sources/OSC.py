@@ -168,8 +168,8 @@ class OSCManager:
         try:
             if address == '/fadeTimeFader1':
                 self.parent.debug(f"Fade time changed to {args[0]}")
-                if self.parent.preset_manager and hasattr(self.parent.preset_manager, 'tauceti_manager'):
-                    self.parent.preset_manager.tauceti_manager.par.Interacttime = float(args[0])*10
+                if self.parent.preset_manager:
+                    self.parent.preset_manager.setFadeTime(args[0])
                 return
 
             if address == '/Randomize/RandomAmount1':

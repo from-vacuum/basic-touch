@@ -1,6 +1,12 @@
 """
 BasicTouch extension - Preset management module.
-Handles presets 
+Handles presets
+
+Presets are provided by an external callbacks DAT (referenced by the
+`Presets Callbacks` parameter) that implements:
+
+    def readPresets() -> list[str]
+    def recall_preset(name: str, fade_time: float) -> None
 
 Created by: @from.vacuum aka Serhiy P.
 
@@ -13,31 +19,46 @@ class PresetManager:
         self.config = parent.config
         self.presets = op('../presets')
         self.presets.clear()
-        self.tauceti_manager = None
-        self.preset_manager_path = self.config.preset_manager_path
-        if self.preset_manager_path:
-            self.tauceti_manager = op(self.preset_manager_path)
+        self.callbacks_dat = None
+        self.presets_callbacks = self.config.presets_callbacks
+        # Fade time passed to the callbacks on recall, in seconds
+        self.max_fade_time = 10.0
+        self.fade_time = 1.0
+        if self.presets_callbacks:
+            self.callbacks_dat = op(self.presets_callbacks)
             self.presets = op('../presets')
             # Default grid settings
             self.preset_grid_cols = 2
             self.preset_grid_rows = 4
             self.max_allowed_presets = 10
 
+    @property
+    def callbacks(self):
+        """Module of the referenced callbacks DAT, or None if unavailable."""
+        if self.callbacks_dat is None:
+            return None
+        try:
+            return self.callbacks_dat.module
+        except Exception as e:
+            self.debug(f"Could not load presets callbacks module: {e}")
+            return None
+
     def loadPresets(self):
-        if self.preset_manager_path:
+        if self.presets_callbacks:
             self.presets.clear()
-            if self.tauceti_manager and hasattr(self.tauceti_manager, 'PresetParMenuObject'):
-                # append each entry from MenuSource to the presets DAT
-                for entry in self.tauceti_manager.PresetParMenuObject.menuNames:
+            callbacks = self.callbacks
+            if callbacks and hasattr(callbacks, 'readPresets'):
+                # append each preset name returned by the callbacks DAT
+                for entry in callbacks.readPresets():
                     self.presets.appendRow([entry])
             else:
-                self.debug("Preset manager not found or does not have the required attribute.")
+                self.debug("Presets callbacks not found or does not implement readPresets().")
 
 
     def sendPresetsToOSC(self):
             self.loadPresets()
-            
-            if hasattr(self, 'tauceti_manager'):
+
+            if self.callbacks_dat:
                 # Calculate preset button dimensions
                 num_presets = self.presets.numRows
                 if num_presets == 0:
@@ -105,23 +126,29 @@ class PresetManager:
                         self.debug(
                             f"Added preset {preset_name} to OSC at position ({x}, {y})")
 
-                # Send fade time fader from Interacttime parameter of Tauceti manager
-                if self.tauceti_manager.par.Interacttime:
-                    fade_time = self.tauceti_manager.par.Interacttime.eval()
-                    self.parent.osc_manager.sendOSC('/fadeTimeFader1', [fade_time])
-                    self.parent.osc_manager.sendOSC(
-                        '/color_control', ['fadeTimeFader', 1, *self.config.color])
-                    self.debug(f"Fade time set to {fade_time}")
+                # Send fade time fader, normalized to the fader's 0..1 range
+                self.parent.osc_manager.sendOSC(
+                    '/fadeTimeFader1', [self.fade_time / self.max_fade_time])
+                self.parent.osc_manager.sendOSC(
+                    '/color_control', ['fadeTimeFader', 1, *self.config.color])
+                self.debug(f"Fade time set to {self.fade_time}")
             return
 
 
+    def setFadeTime(self, normalized):
+        """Store fade time from the normalized (0..1) OSC fader value."""
+        self.fade_time = float(normalized) * self.max_fade_time
+        self.debug(f"Fade time set to {self.fade_time}")
+
     def recall_preset(self, index):
-        if hasattr(self, 'tauceti_manager'):
+        callbacks = self.callbacks
+        if callbacks and hasattr(callbacks, 'recall_preset'):
             # get preset name by id from presets DAT
             preset_name = self.presets[index-1, 0].val
             self.debug(f"Recalling preset {preset_name} ")
-            self.tauceti_manager.Recall_Preset(
-                preset_name, self.tauceti_manager.par.Interacttime.eval())
+            callbacks.recall_preset(preset_name, self.fade_time)
+        else:
+            self.debug("Presets callbacks not found or does not implement recall_preset().")
 
     def debug(self, message):
         self.parent.debug(message)
